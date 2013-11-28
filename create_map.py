@@ -1,15 +1,27 @@
+#!/usr/bin/env python
+
 from PIL import Image
 from pycoast import ContourWriter
 from pyresample import image, geometry
-import numpy as np
 from collections import namedtuple
-import requests
-from os import environ, path
 from StringIO import StringIO
+import numpy as np
+import requests
+import os
 import datetime
+import argparse
+import ConfigParser
+import sys
+import errno
 
-plot_debug = True
-    
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
 def findStartIndex(img):
     """Return the first row index not containing the white border at the top"""
 
@@ -123,6 +135,10 @@ class SatelliteData:
         self.base_url  = base_url
         self.suffix    = suffix
         
+    def login(self, username, password):
+        self.username = username
+        self.password = password
+        
     def set_time(self, dt):
         self.dt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour/3*3, 0, 0)
         str1 = self.dt.strftime("%Y/%m/%d/%H00/")
@@ -131,89 +147,116 @@ class SatelliteData:
         self.filename = str2 + self.suffix
     
     def check_for_image(self):
-        username = environ['SATUSER']
-        passwd   = environ['SATPASSWD']
         
-        if path.isfile(self.filename):
+        if os.path.isfile(self.filename):
             return True
-        r = requests.head(self.url, auth=(username, passwd))
+        r = requests.head(self.url, auth=(self.username, self.password))
         if r.status_code == requests.codes.ok:
             return True
         else:
             return False
             
     def download_image(self):
-        username = environ['SATUSER']
-        passwd   = environ['SATPASSWD']
-        
-        if path.isfile(self.filename):
+        if os.path.isfile(self.filename):
             return
-        r = requests.get(self.url, auth=(username, passwd))
+        r = requests.get(self.url, auth=(self.username, self.password))
         i = Image.open(StringIO(r.content))
         i.save(self.filename)
          
-
-images = []
 
 satellite_list = (
                   SatelliteData(145.0, 5433878.562*1.01, 50000,
                                 curve,
                                 "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
-                                "_MTSAT2_4_S1.jpeg"
+                                "_MTSAT2_4_S2.jpeg"
                                 ),
                   SatelliteData(57.0, 5568742.4*0.97, 0,
                                 ID,
                                 "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
-                                "_MET7_2_S1.jpeg"
+                                "_MET7_2_S2.jpeg"
                                 ),
                   SatelliteData(0.0, 5433878.562, 0,
                                 ID,
                                 "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
-                                "_MSG3_9_S1.jpeg"
+                                "_MSG3_9_S2.jpeg"
                                 ),
                   SatelliteData(-75.0, 5433878.562, 0,
                                 ID,
                                 "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
-                                "_GOES13_4_S1.jpeg"
+                                "_GOES13_4_S2.jpeg"
                                 ),
                   SatelliteData(-135.0, 5433878.562, 0,
                                 ID,
                                 "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
-                                "_GOES15_4_S1.jpeg"
+                                "_GOES15_4_S2.jpeg"
                                 ),
                   )
 
-dt = datetime.datetime.utcnow()
-max_tries = 10
-
-for _ in range(max_tries):
-    found_all = True
-
-    for satellite in satellite_list:
-        satellite.set_time(dt)
-        found_all &= satellite.check_for_image()
-        
-    if found_all: break
-    dt = dt - datetime.timedelta(hours = 3)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", help="store intermediate results",
+                        action="store_true")
+    parser.add_argument("-c", "--conf_file", help="Specify config file", 
+                        metavar="FILE", default="cloudmap.ini")
+    args = parser.parse_args()
+    config = ConfigParser.SafeConfigParser()
+    config.read([args.conf_file])
+    username = dict(config.items("Download"))['username']
+    password = dict(config.items("Download"))['password']
+    tempdir  = dict(config.items("Download"))['tempdir']
+    outdir   = dict(config.items("xplanet"))['destinationdir']
     
-print "Download image date/time: ", satellite_list[0].dt.strftime("%Y-%m-%d %H:00 UTC")
+    images = []
+    
+    dt = datetime.datetime.utcnow()
+    max_tries = 10
+    
+    for _ in range(max_tries):
+        found_all = True
+    
+        for satellite in satellite_list:
+            satellite.login(username, password)
+            satellite.set_time(dt)
+            found_all &= satellite.check_for_image()
+            
+        if found_all: break
+        dt = dt - datetime.timedelta(hours = 3)
 
-i = 1
-for satellite in satellite_list:
-    print "Satellite file: ", satellite.filename
-    satellite.download_image()
-    img = project(satellite)
-    if plot_debug: saveImage(img[0], "test" + `i` + ".jpeg", overlays=True)
-    if plot_debug: saveImage(np.array(img[1]*255, 'uint8'), "weighttest" + `i` + ".jpeg", overlays=True)
-    images.append(img)
-    i += 1
+    if not found_all:
+        sys.exit("Cannot download (all) satellite images!")
 
-images = np.array(images)
+    print "Download image date/time: ", satellite_list[0].dt.strftime("%Y-%m-%d %H:00 UTC")
+    
+    mkdir_p(tempdir)
+    
+    i = 1
+    for satellite in satellite_list:
+        print "Satellite file: ", satellite.filename
+        satellite.download_image()
+        img = project(satellite)
+        if args.debug: saveImage(img[0], 
+                                 os.path.join(tempdir, "test" + `i` + ".jpeg"), 
+                                 overlays=True)
+        if args.debug: saveImage(np.array(img[1]*255, 'uint8'), 
+                                 os.path.join(tempdir, "weighttest" + `i` + ".jpeg"), 
+                                 overlays=True)
+        images.append(img)
+        i += 1
+    
+    images = np.array(images)
+    
+    weight_sum = np.sum(images[:, 1], axis = 0)
+    if args.debug: saveImage(np.array(weight_sum*255, 'uint8'), os.path.join(tempdir, "weightsum.jpeg"), overlays=True)
+    new_image = np.sum(images[:, 0] * images[:, 1], axis = 0)/weight_sum
+    
+    mkdir_p(outdir)
 
-weight_sum = np.sum(images[:, 1], axis = 0)
-if plot_debug: saveImage(np.array(weight_sum*255, 'uint8'), "weightsum.jpeg", overlays=True)
-new_image = np.sum(images[:, 0] * images[:, 1], axis = 0)/weight_sum
-
-saveImage(new_image, "clouds_2048.jpg")
-if plot_debug: saveImage(new_image, "test.jpeg", overlays=True)
-print "finished"
+    try:
+        os.remove(os.path.join(outdir, "clouds_2048.jpg"))
+    except OSError:
+        pass
+    saveImage(new_image, os.path.join(outdir, "clouds_2048.jpg"))
+    if args.debug: saveImage(new_image, 
+                             os.path.join(tempdir,"test.jpeg"), 
+                             overlays=True)
+    print "finished"
