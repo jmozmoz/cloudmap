@@ -138,13 +138,13 @@ class SatelliteData:
     def login(self, username, password):
         self.username = username
         self.password = password
-        
-    def set_time(self, dt):
+
+    def set_time(self, dt, tempdir=""):
         self.dt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour/3*3, 0, 0)
         str1 = self.dt.strftime("%Y/%m/%d/%H00/")
         str2 = self.dt.strftime("%Y_%m_%d_%H00")
         self.url      = self.base_url + str1 + str2 + self.suffix
-        self.filename = str2 + self.suffix
+        self.filename = os.path.join(tempdir, str2 + self.suffix)
     
     def check_for_image(self):
         
@@ -216,8 +216,8 @@ if __name__ == '__main__':
     
         for satellite in satellite_list:
             satellite.login(username, password)
-            satellite.set_time(dt)
-            found_all &= satellite.check_for_image()
+            satellite.set_time(dt, tempdir)
+            found_all = found_all and satellite.check_for_image()
             
         if found_all: break
         dt = dt - datetime.timedelta(hours = 3)
