@@ -1,25 +1,26 @@
-# http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/2013/11/19/1800/2013_11_19_1800_MTSAT2_4_S1.jpeg
-# http://www.sat.dundee.ac.uk/xrit/057.0E/MET/2013/11/19/1800/2013_11_19_1800_MET7_2_S1.jpeg
-# http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/2013/11/19/1800/2013_11_19_1800_MSG3_4_S1.jpeg
-# http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/2013/11/19/1800/2013_11_19_1800_GOES13_4_S1.jpeg
-# http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/2013/11/19/1800/2013_11_19_1800_GOES15_4_S1.jpeg
-
 from PIL import Image
 from pycoast import ContourWriter
 from pyresample import image, geometry
 import numpy as np
 from collections import namedtuple
+import requests
+from os import environ, path
+from StringIO import StringIO
+import datetime
 
-plot_debug = False
-
+plot_debug = True
+    
 def findStartIndex(img):
     """Return the first row index not containing the white border at the top"""
-    
-    i = 0
+
     look  = False
-    for r in img:
-        m = np.amin(r)
-        #print m
+    start = 3
+    i = start
+    left  = 10
+    right = img.shape[0] - 10
+    for r in img[start:]:
+        m = np.amin(r[left:right])
+#        print m
         if (look and m < 255):
             return i
         elif (not look and m == 255):
@@ -113,45 +114,94 @@ def ID(b):
     """Identity function"""
     return b
 
+class SatelliteData:
+    def __init__(self, longitude, extent, false_y, rescale, base_url, suffix):
+        self.longitude = longitude
+        self.extent    = extent
+        self.false_y   = false_y
+        self.rescale   = rescale
+        self.base_url  = base_url
+        self.suffix    = suffix
+        
+    def set_time(self, dt):
+        self.dt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour/3*3, 0, 0)
+        str1 = self.dt.strftime("%Y/%m/%d/%H00/")
+        str2 = self.dt.strftime("%Y_%m_%d_%H00")
+        self.url      = self.base_url + str1 + str2 + self.suffix
+        self.filename = str2 + self.suffix
+    
+    def check_for_image(self):
+        username = environ['SATUSER']
+        passwd   = environ['SATPASSWD']
+        
+        if path.isfile(self.filename):
+            return True
+        r = requests.head(self.url, auth=(username, passwd))
+        if r.status_code == requests.codes.ok:
+            return True
+        else:
+            return False
+            
+    def download_image(self):
+        username = environ['SATUSER']
+        passwd   = environ['SATPASSWD']
+        
+        if path.isfile(self.filename):
+            return
+        r = requests.get(self.url, auth=(username, passwd))
+        i = Image.open(StringIO(r.content))
+        i.save(self.filename)
+         
+
 images = []
 
-SatelliteStruct = namedtuple("SatelliteStruct", "filename longitude extent false_y rescale")
-
 satellite_list = (
-                  SatelliteStruct('2013_11_23_2100_MTSAT2_2_S1_grid.jpeg',
-                                  145.0,
-                                  5433878.562*1.01,
-                                  50000,
-                                  curve
-                                  ),
-                  SatelliteStruct('2013_11_23_2100_MET7_2_S1_grid.jpeg',
-                                  57.0,
-                                  5568742.4*0.97,
-                                  0,
-                                  ID
-                                  ),
-                  SatelliteStruct('2013_11_23_2100_MSG3_4_S1_grid.jpeg',
-                                  0.0,
-                                  5433878.562,
-                                  0,
-                                  ID
-                                  ),
-                  SatelliteStruct('2013_11_23_2100_GOES13_4_S1_grid.jpeg',
-                                  -75.0,
-                                  5433878.562,
-                                  0,
-                                  ID
-                                  ),
-                  SatelliteStruct('2013_11_23_2100_GOES15_2_S1_grid.jpeg',
-                                  -135.0,
-                                  5433878.562,
-                                  0,
-                                  ID
-                                  ),
+                  SatelliteData(145.0, 5433878.562*1.01, 50000,
+                                curve,
+                                "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
+                                "_MTSAT2_4_S1.jpeg"
+                                ),
+                  SatelliteData(57.0, 5568742.4*0.97, 0,
+                                ID,
+                                "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
+                                "_MET7_2_S1.jpeg"
+                                ),
+                  SatelliteData(0.0, 5433878.562, 0,
+                                ID,
+                                "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
+                                "_MSG3_9_S1.jpeg"
+                                ),
+                  SatelliteData(-75.0, 5433878.562, 0,
+                                ID,
+                                "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
+                                "_GOES13_4_S1.jpeg"
+                                ),
+                  SatelliteData(-135.0, 5433878.562, 0,
+                                ID,
+                                "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
+                                "_GOES15_4_S1.jpeg"
+                                ),
                   )
+
+dt = datetime.datetime.utcnow()
+max_tries = 10
+
+for _ in range(max_tries):
+    found_all = True
+
+    for satellite in satellite_list:
+        satellite.set_time(dt)
+        found_all &= satellite.check_for_image()
+        
+    if found_all: break
+    dt = dt - datetime.timedelta(hours = 3)
+    
+print "Download image date/time: ", satellite_list[0].dt.strftime("%Y-%m-%d %H:00 UTC")
 
 i = 1
 for satellite in satellite_list:
+    print "Satellite file: ", satellite.filename
+    satellite.download_image()
     img = project(satellite)
     if plot_debug: saveImage(img[0], "test" + `i` + ".jpeg", overlays=True)
     if plot_debug: saveImage(np.array(img[1]*255, 'uint8'), "weighttest" + `i` + ".jpeg", overlays=True)
