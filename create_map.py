@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 from PIL import Image
-from pycoast import ContourWriter
 from pyresample import image, geometry
-from collections import namedtuple
+
 from StringIO import StringIO
 import numpy as np
 import requests
@@ -158,7 +157,7 @@ class SatelliteData:
     
         #msg_con_nn = image.ImageContainerNearest(data, area, radius_of_influence=50000)
         dataResampled = dataIC.resample(pc)
-        dataResampledImage = satellite.rescale(dataResampled.image_data)
+        dataResampledImage = self.rescale(dataResampled.image_data)
     
         dataResampledImage[0:90, :] = dataResampledImage[180:90:-1, :]
         dataResampledImage[1024-90:1024, :] = dataResampledImage[1024-90:1024-180:-1, :]
@@ -170,35 +169,36 @@ class SatelliteData:
                                1e-7) for x in np.linspace(-180, 180, dataResampled.shape[1])])
         return np.array([dataResampledImage, np.tile(weight, (dataResampled.shape[0], 1))])
 
-satellite_list = (
-                  SatelliteData(145.0, 5433878.562*1.01, 50000,
-                                SatelliteData.curve,
-                                "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
-                                "_MTSAT2_4_S2.jpeg"
-                                ),
-                  SatelliteData(57.0, 5568742.4*0.97, 0,
-                                SatelliteData.ID,
-                                "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
-                                "_MET7_2_S2.jpeg"
-                                ),
-                  SatelliteData(0.0, 5433878.562, 0,
-                                SatelliteData.ID,
-                                "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
-                                "_MSG3_9_S2.jpeg"
-                                ),
-                  SatelliteData(-75.0, 5433878.562, 0,
-                                SatelliteData.ID,
-                                "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
-                                "_GOES13_4_S2.jpeg"
-                                ),
-                  SatelliteData(-135.0, 5433878.562, 0,
-                                SatelliteData.ID,
-                                "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
-                                "_GOES15_4_S2.jpeg"
-                                ),
-                  )
 
-if __name__ == '__main__':
+def main():
+    satellite_list = (
+                      SatelliteData(145.0, 5433878.562*1.01, 50000,
+                                    SatelliteData.curve,
+                                    "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
+                                    "_MTSAT2_4_S2.jpeg"
+                                    ),
+                      SatelliteData(57.0, 5568742.4*0.97, 0,
+                                    SatelliteData.ID,
+                                    "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
+                                    "_MET7_2_S2.jpeg"
+                                    ),
+                      SatelliteData(0.0, 5433878.562, 0,
+                                    SatelliteData.ID,
+                                    "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
+                                    "_MSG3_9_S2.jpeg"
+                                    ),
+                      SatelliteData(-75.0, 5433878.562, 0,
+                                    SatelliteData.ID,
+                                    "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
+                                    "_GOES13_4_S2.jpeg"
+                                    ),
+                      SatelliteData(-135.0, 5433878.562, 0,
+                                    SatelliteData.ID,
+                                    "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
+                                    "_GOES15_4_S2.jpeg"
+                                    ),
+                      )
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="store intermediate results",
                         action="store_true")
@@ -207,6 +207,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     config = ConfigParser.SafeConfigParser()
     config.read([args.conf_file])
+    if args.debug:
+        global ContourWriter
+        from pycoast import ContourWriter
+    
     username = dict(config.items("Download"))['username']
     password = dict(config.items("Download"))['password']
     tempdir  = dict(config.items("Download"))['tempdir']
@@ -266,3 +270,6 @@ if __name__ == '__main__':
                              os.path.join(tempdir,"test.jpeg"), 
                              overlays=True)
     print "finished"
+
+if __name__ == '__main__':
+    main()
