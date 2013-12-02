@@ -216,7 +216,7 @@ def main():
     tempdir  = dict(config.items("Download"))['tempdir']
     outdir   = dict(config.items("xplanet"))['destinationdir']
     
-    images = []
+    images = np.empty(shape=(5, 2, 1024, 2048))
     
     dt = datetime.datetime.utcnow()
     max_tries = 10
@@ -250,10 +250,8 @@ def main():
         if args.debug: saveImage(np.array(img[1]*255, 'uint8'), 
                                  os.path.join(tempdir, "weighttest" + `i` + ".jpeg"), 
                                  overlays=True)
-        images.append(img)
+        images[i-1] = img
         i += 1
-    
-    images = np.array(images)
     
     weight_sum = np.sum(images[:, 1], axis = 0)
     if args.debug: saveImage(np.array(weight_sum*255, 'uint8'), os.path.join(tempdir, "weightsum.jpeg"), overlays=True)
