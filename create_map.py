@@ -141,11 +141,14 @@ class SatelliteData:
 
     def set_time(self, dt, tempdir=""):
         self.dt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour/3*3, 0, 0)
-        str1 = self.dt.strftime("%Y/%m/%d/%H00/")
-        str2 = self.dt.strftime("%Y_%m_%d_%H00")
+        day = self.dt.strftime("%d").lstrip("0")
+        month = self.dt.strftime("%m").lstrip("0")
+        hour  = self.dt.strftime("%H").lstrip("0")
+        str1 = self.dt.strftime("%Y/")+ month + "/" + day + "/" + hour + "00/"
+        str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + hour + "00"
         self.url      = self.base_url + str1 + str2 + self.suffix
         self.filename = os.path.join(tempdir, str2 + self.suffix)
-    
+            
     def check_for_image(self):
         
         if os.path.isfile(self.filename):
