@@ -22,24 +22,26 @@ def mkdir_p(path):
         else: raise
 
 
-def saveImage(new_image, filename, overlays = False):
+def saveImage(new_image, filename):
     """Save satellite image"""
 
-    rgbArray = np.zeros((new_image.shape[0], new_image.shape[1], 3), 'uint8')
-    rgbArray[..., 0] = new_image
-    rgbArray[..., 1] = new_image
-    rgbArray[..., 2] = new_image
-    img = Image.fromarray(rgbArray)
-
-    if overlays:
-        proj4_string = '+proj=eqc'
-        area_extent = (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
-        area_def = (proj4_string, area_extent)
-        cw = ContourWriter('./gshhg')
-        cw.add_coastlines(img, area_def, outline = 'red', resolution='l', level=4)
-        cw.add_grid(img, area_def, (20, 20), (10, 10), outline = 'blue')
-
+    img = Image.fromarray(new_image).convert('RGB')
     img.save(filename)
+
+def saveDebug(new_image, filename):
+    import matplotlib
+    matplotlib.use('AGG', warn=False)
+    from pyresample import plot
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    
+    bmap = plot.area_def2basemap(SatelliteData.pc(), resolution='c')
+    bmap.drawcoastlines()
+    bmap.drawmeridians(np.arange(-180, 180, 45))
+    bmap.drawparallels(np.arange(-90, 90, 10))
+    col = bmap.imshow(new_image, origin='upper', vmin=None, vmax=None, cmap = cm.Greys_r)
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi = 200)
+    plt.close()
 
 class SatelliteData:
     def __init__(self, longitude, extent, false_y, rescale, base_url, suffix):
@@ -129,6 +131,16 @@ class SatelliteData:
         self.data = self.data[::-1]
         return self.data.T
     
+    @staticmethod
+    def pc():
+        proj_dict = {'proj': 'eqc'}
+        area_extent =(-20037508.34, -10018754.17, 20037508.34, 10018754.17)
+        x_size = 2048
+        y_size = 1024
+        pc = geometry.AreaDefinition('pc', 'Plate Carree world map', 'pc',
+                                     proj_dict, x_size, y_size, area_extent)
+        return pc
+    
     def project(self):
         """Reproject the satellite image on an equirectangular map"""
         
@@ -147,21 +159,14 @@ class SatelliteData:
         area = geometry.AreaDefinition('geo', 'geostat', 'geo', proj_dict, x_size,
                                        y_size, area_extent)
         dataIC = image.ImageContainerQuick(self.data, area)
-    
-        proj_dict = {'proj': 'eqc'}
-        area_extent =(-20037508.34, -10018754.17, 20037508.34, 10018754.17)
-        x_size = 2048
-        y_size = 1024
-        pc = geometry.AreaDefinition('pc', 'Plate Carree world map', 'pc',
-                                     proj_dict, x_size, y_size, area_extent)
-    
+        
         #msg_con_nn = image.ImageContainerNearest(data, area, radius_of_influence=50000)
-        dataResampled = dataIC.resample(pc)
+        dataResampled = dataIC.resample(SatelliteData.pc())
         dataResampledImage = self.rescale(dataResampled.image_data)
     
         dataResampledImage[0:90, :] = dataResampledImage[180:90:-1, :]
         dataResampledImage[1024-90:1024, :] = dataResampledImage[1024-90:1024-180:-1, :]
-    
+
         width = 55
         weight = np.array([max((width - min([abs(self.longitude - x),
                                              abs(self.longitude - x + 360),
@@ -207,9 +212,6 @@ def main():
     args = parser.parse_args()
     config = ConfigParser.SafeConfigParser()
     config.read([args.conf_file])
-    if args.debug:
-        global ContourWriter
-        from pycoast import ContourWriter
     
     username = dict(config.items("Download"))['username']
     password = dict(config.items("Download"))['password']
@@ -244,17 +246,16 @@ def main():
         print "Satellite file: ", satellite.filename
         satellite.download_image()
         img = satellite.project()
-        if args.debug: saveImage(img[0], 
-                                 os.path.join(tempdir, "test" + `i` + ".jpeg"), 
-                                 overlays=True)
-        if args.debug: saveImage(np.array(img[1]*255, 'uint8'), 
-                                 os.path.join(tempdir, "weighttest" + `i` + ".jpeg"), 
-                                 overlays=True)
+        if args.debug:
+            saveDebug(img[0],
+                      os.path.join(tempdir, "test" + `i` + ".jpeg"))
+            saveDebug(np.array(img[1]*255, 'uint8'),
+                      os.path.join(tempdir, "weighttest" + `i` + ".jpeg"))
         images[i-1] = img
         i += 1
     
     weight_sum = np.sum(images[:, 1], axis = 0)
-    if args.debug: saveImage(np.array(weight_sum*255, 'uint8'), os.path.join(tempdir, "weightsum.jpeg"), overlays=True)
+    if args.debug: saveDebug(np.array(weight_sum*255, 'uint8'), os.path.join(tempdir, "weightsum.jpeg"))
     new_image = np.sum(images[:, 0] * images[:, 1], axis = 0)/weight_sum
     
     mkdir_p(outdir)
@@ -264,9 +265,8 @@ def main():
     except OSError:
         pass
     saveImage(new_image, os.path.join(outdir, "clouds_2048.jpg"))
-    if args.debug: saveImage(new_image, 
-                             os.path.join(tempdir,"test.jpeg"), 
-                             overlays=True)
+    if args.debug: saveDebug(new_image, 
+                             os.path.join(tempdir,"test.jpeg"))
     print "finished"
 
 if __name__ == '__main__':
