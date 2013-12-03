@@ -52,6 +52,7 @@ class SatelliteData:
         self.base_url  = base_url
         self.suffix    = suffix
         self.rescale   = rescale
+        self.filemodtime = 0
         
     def login(self, username, password):
         self.username = username
@@ -89,10 +90,12 @@ class SatelliteData:
             
     def download_image(self):
         if os.path.isfile(self.filename):
+            self.filemodtime = os.path.getmtime(self.filename)
             return
         r = requests.get(self.url, auth=(self.username, self.password))
         i = Image.open(StringIO(r.content))
         i.save(self.filename)
+        self.filemodtime = os.path.getmtime(self.filename)
          
     def findStartIndex(self, img):
         """Return the first row index not containing the white border at the top"""
@@ -209,6 +212,8 @@ def main():
                         action="store_true")
     parser.add_argument("-c", "--conf_file", help="Specify config file", 
                         metavar="FILE", default="cloudmap.ini")
+    parser.add_argument("-f", "--force", help="Force to recreate cloud map",
+                        action="store_true")
     args = parser.parse_args()
     config = ConfigParser.SafeConfigParser()
     config.read([args.conf_file])
@@ -240,11 +245,22 @@ def main():
     print "Download image date/time: ", satellite_list[0].dt.strftime("%Y-%m-%d %H:00 UTC")
     
     mkdir_p(tempdir)
-    
-    i = 1
+
+    latest_download = 0    
     for satellite in satellite_list:
         print "Satellite file: ", satellite.filename
         satellite.download_image()
+        latest_download = max(latest_download, satellite.filemodtime)
+        
+    if (
+        not args.force and
+        os.path.isfile(os.path.join(outdir, "clouds_2048.jpg")) and 
+        (os.path.getmtime(os.path.join(outdir, "clouds_2048.jpg")) > latest_download)
+        ):
+        sys.exit(0)
+        
+    i = 1
+    for satellite in satellite_list:
         img = satellite.project()
         if args.debug:
             saveDebug(img[0],

@@ -22,11 +22,12 @@ destinationdir = xplanet/images
 To see all command line options of the script use `--help`:
 ```
 $ python create_map.py --help
-usage: create_map.py [-h] [-d] [-c FILE]
+usage: create_map.py [-h] [-d] [-c FILE] [-f]
 
 optional arguments:
   -h, --help            show this help message and exit
   -d, --debug           store intermediate results
   -c FILE, --conf_file FILE
                         Specify config file
+  -f, --force           Force to recreate cloud map
 ```  
