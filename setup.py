@@ -1,4 +1,5 @@
 from setuptools import setup
+import os
  
 setup(
     name='CreateCloudMap',
@@ -11,6 +12,7 @@ setup(
     author_email='Joachim.Herb@gmx.de',
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime', 
                       'argparse', 'ConfigParser', 'PIL'],
+    data_files=[(os.path.expanduser('~/.CreateCloudMap'), ['cfg/CreateCloudMap.ini', ]),],
     entry_points={
         'console_scripts': [
             'create_map = cloudmap.create_map:main',

@@ -211,7 +211,7 @@ def main():
     parser.add_argument("-d", "--debug", help="store intermediate results",
                         action="store_true")
     parser.add_argument("-c", "--conf_file", help="Specify config file", 
-                        metavar="FILE", default="cloudmap.ini")
+                        metavar="FILE", default=os.path.expanduser("~/.CreateCloudMap/CreateCloudMap.ini"))
     parser.add_argument("-f", "--force", help="Force to recreate cloud map",
                         action="store_true")
     args = parser.parse_args()
