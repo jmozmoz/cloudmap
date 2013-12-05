@@ -10,7 +10,7 @@ setup(
     author='Joachim Herb',
     author_email='Joachim.Herb@gmx.de',
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime', 
-                      'argparse', 'ConfigParser', 'PIL', 'matplotlib', 'Basemap'],
+                      'argparse', 'ConfigParser', 'PIL'],
     entry_points={
         'console_scripts': [
             'create_map = cloudmap.create_map:main',
