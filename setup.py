@@ -64,6 +64,12 @@ setup(
          "Topic :: Scientific/Engineering :: Visualization",
          "Topic :: Utilities",
          ],
-      cmdclass={'install': Install,
-                }
+    cmdclass={'install': Install,
+             },
+    scripts=['winpostinstall.py'],
+    options={
+        "bdist_wininst" : {
+            "install_script" : "winpostinstall.py", 
+        },
+    }
 )
