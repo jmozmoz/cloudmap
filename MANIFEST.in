@@ -1,2 +1,2 @@
-include README.md LICENSE
+include README.rst LICENSE
 include cfg/CreateCloudMap.ini

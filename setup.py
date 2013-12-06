@@ -17,7 +17,21 @@ setup(
         'console_scripts': [
             'create_map = cloudmap.create_map:main',
         ]
-    }
+    },
+    classifiers=[
+         "Programming Language :: Python", 
+         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+         "Operating System :: OS Independent",
+         "Development Status :: 4 - Beta",
+         "Environment :: Console",
+         "Intended Audience :: End Users/Desktop",
+         "Topic :: Desktop Environment",
+         "Topic :: Multimedia :: Graphics",
+         "Topic :: Scientific/Engineering :: Atmospheric Science",
+         "Topic :: Scientific/Engineering :: GIS",
+         "Topic :: Scientific/Engineering :: Visualization",
+         "Topic :: Utilities",
+         ]
 )
 
 def mkdir_p(path):
