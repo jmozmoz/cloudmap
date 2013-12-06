@@ -1,5 +1,34 @@
 from setuptools import setup
+from setuptools.command.install import install as _install
 import os
+
+def mkdir_p(path):
+    import errno
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
+class install(_install):
+    def run(self):
+        _install.run(self)
+        from sys import argv
+        try:
+            if argv[1] == 'install':
+                from shutil import copyfile
+                src = os.path.join('cfg', 'CreateCloudMap.ini')
+                dstdir = os.path.expanduser('~/.CreateCloudMap')
+                dstfile = os.path.join(dstdir, 'CreateCloudMap.ini')
+                updatefile = os.path.join(dstdir, 'CreateCloudMap.ini.new')
+                mkdir_p(dstdir)
+                if not os.path.exists(dstfile):
+                    copyfile(src, dstfile)
+                else:
+                    copyfile(src, updatefile)
+                    
+        except IndexError: pass
  
 setup(
     name='CreateCloudMap',
@@ -34,29 +63,3 @@ setup(
          ],
       cmdclass={'install': install}
 )
-
-def mkdir_p(path):
-    import errno
-    try:
-        os.makedirs(path)
-    except OSError as exc: # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else: raise
-
-def install():
-    from sys import argv
-    try:
-        if argv[1] == 'install':
-            from shutil import copyfile
-            src = os.path.join('cfg', 'CreateCloudMap.ini')
-            dstdir = os.path.expanduser('~/.CreateCloudMap')
-            dstfile = os.path.join(dstdir, 'CreateCloudMap.ini')
-            updatefile = os.path.join(dstdir, 'CreateCloudMap.ini.new')
-            mkdir_p(dstdir)
-            if not os.path.exists(dstfile):
-                copyfile(src, dstfile)
-            else:
-                copyfile(src, updatefile)
-                
-    except IndexError: pass
