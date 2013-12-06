@@ -7,9 +7,10 @@ setup(
     packages=['cloudmap', ],
     license='LICENSE',
     description='Create a cloud map for xplanet using satellite images from the Dundee Satellite Receiving Station, Dundee University, UK',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     author='Joachim Herb',
     author_email='Joachim.Herb@gmx.de',
+    url = 'https://github.com/jmozmoz/cloudmap', 
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime', 
                       'argparse', 'ConfigParser', 'PIL'],
     entry_points={
