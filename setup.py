@@ -1,5 +1,6 @@
 from setuptools import setup
 from setuptools.command.install import install as _install
+
 import os
 
 def mkdir_p(path):
@@ -12,19 +13,17 @@ def mkdir_p(path):
         else: raise
 
 def copy_config():
-    from sys import argv
     try:
-        if argv[1] == 'install':
-            from shutil import copyfile
-            src = os.path.join('cfg', 'CreateCloudMap.ini')
-            dstdir = os.path.expanduser('~/.CreateCloudMap')
-            dstfile = os.path.join(dstdir, 'CreateCloudMap.ini')
-            updatefile = os.path.join(dstdir, 'CreateCloudMap.ini.new')
-            mkdir_p(dstdir)
-            if not os.path.exists(dstfile):
-                copyfile(src, dstfile)
-            else:
-                copyfile(src, updatefile)
+        from shutil import copyfile
+        src = os.path.join('cfg', 'CreateCloudMap.ini')
+        dstdir = os.path.expanduser('~/.CreateCloudMap')
+        dstfile = os.path.join(dstdir, 'CreateCloudMap.ini')
+        updatefile = os.path.join(dstdir, 'CreateCloudMap.ini.new')
+        mkdir_p(dstdir)
+        if not os.path.exists(dstfile):
+            copyfile(src, dstfile)
+        else:
+            copyfile(src, updatefile)
                 
     except IndexError: pass
 
@@ -32,7 +31,8 @@ class Install(_install):
     def run(self):
         _install.run(self)
         copy_config()
- 
+
+
 setup(
     name='CreateCloudMap',
     version='0.1.0',
