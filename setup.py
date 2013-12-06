@@ -1,6 +1,5 @@
 from setuptools import setup
 from setuptools.command.install import install as _install
-from setuptools.command.bdist_wininst import _bdist_wininst
 import os
 
 def mkdir_p(path):
@@ -32,11 +31,6 @@ def copy_config():
 class Install(_install):
     def run(self):
         _install.run(self)
-        copy_config()
-
-class WinInstall(_bdist_wininst):
-    def run(self):
-        _bdist_wininst.run(self)
         copy_config()
  
 setup(
@@ -71,6 +65,5 @@ setup(
          "Topic :: Utilities",
          ],
       cmdclass={'install': Install,
-                'bdist_wininst': WinInstall
                 }
 )
