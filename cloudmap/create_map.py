@@ -39,11 +39,17 @@ def saveDebug(new_image, filename):
     bmap.drawcoastlines()
     bmap.drawmeridians(np.arange(-180, 180, 45))
     bmap.drawparallels(np.arange(-90, 90, 10))
-    col = bmap.imshow(new_image, origin='upper', vmin=None, vmax=None, cmap = cm.Greys_r)
+    col = bmap.imshow(new_image, origin='upper', vmin=None, vmax=None, 
+                      cmap = cm.Greys_r)
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi = 200)
     plt.close()
 
 class SatelliteData:
+    
+    # size of the output image
+    outwidth  = 0
+    outheight = 0
+    
     def __init__(self, longitude, extent, false_y, rescale, base_url, suffix):
         self.longitude = longitude
         self.extent    = extent
@@ -69,7 +75,8 @@ class SatelliteData:
         return b
 
     def set_time(self, dt, tempdir=""):
-        self.dt = datetime.datetime(dt.year, dt.month, dt.day, dt.hour/3*3, 0, 0)
+        self.dt = datetime.datetime(dt.year, dt.month, dt.day, 
+                                    dt.hour/3*3, 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour  = self.dt.strftime("%H").lstrip("0")
@@ -138,8 +145,8 @@ class SatelliteData:
     def pc():
         proj_dict = {'proj': 'eqc'}
         area_extent =(-20037508.34, -10018754.17, 20037508.34, 10018754.17)
-        x_size = 2048
-        y_size = 1024
+        x_size = SatelliteData.outwidth
+        y_size = SatelliteData.outheight
         pc = geometry.AreaDefinition('pc', 'Plate Carree world map', 'pc',
                                      proj_dict, x_size, y_size, area_extent)
         return pc
@@ -159,7 +166,8 @@ class SatelliteData:
                      'h': '35785831.0', 'proj': 'geos'}
         area_extent =(-self.extent, -self.extent,
                       self.extent, self.extent)
-        area = geometry.AreaDefinition('geo', 'geostat', 'geo', proj_dict, x_size,
+        area = geometry.AreaDefinition('geo', 'geostat', 'geo', 
+                                       proj_dict, x_size,
                                        y_size, area_extent)
         dataIC = image.ImageContainerQuick(self.data, area)
         
@@ -167,63 +175,96 @@ class SatelliteData:
         dataResampled = dataIC.resample(SatelliteData.pc())
         dataResampledImage = self.rescale(dataResampled.image_data)
     
-        dataResampledImage[0:90, :] = dataResampledImage[180:90:-1, :]
-        dataResampledImage[1024-90:1024, :] = dataResampledImage[1024-90:1024-180:-1, :]
+        # create fantasy polar clouds by mirroring high latitude data
+        polar_height = int(90.0/1024.0 * SatelliteData.outheight)
+        north_pole_indices      = range(0, polar_height)
+        north_pole_copy_indices = range(2*polar_height, polar_height, -1)
+        dataResampledImage[north_pole_indices, :] = dataResampledImage[north_pole_copy_indices, :]
+        south_pole_indices      = range(SatelliteData.outheight-polar_height, 
+                                        SatelliteData.outheight)
+        south_pole_copy_indices = range(SatelliteData.outheight-polar_height, 
+                                        SatelliteData.outheight-2*polar_height,
+                                        -1) 
+        dataResampledImage[south_pole_indices, :] = dataResampledImage[south_pole_copy_indices, :]
 
         width = 55
         weight = np.array([max((width - min([abs(self.longitude - x),
                                              abs(self.longitude - x + 360),
                                              abs(self.longitude - x - 360)]))/180,
                                1e-7) for x in np.linspace(-180, 180, dataResampled.shape[1])])
-        return np.array([dataResampledImage, np.tile(weight, (dataResampled.shape[0], 1))])
+        return np.array([dataResampledImage, 
+                         np.tile(weight, (dataResampled.shape[0], 1))])
 
 
 def main():
-    satellite_list = (
-                      SatelliteData(145.0, 5433878.562*1.01, 50000,
-                                    SatelliteData.curve,
-                                    "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
-                                    "_MTSAT2_4_S2.jpeg"
-                                    ),
-                      SatelliteData(57.0, 5568742.4*0.97, 0,
-                                    SatelliteData.ID,
-                                    "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
-                                    "_MET7_2_S2.jpeg"
-                                    ),
-                      SatelliteData(0.0, 5433878.562, 0,
-                                    SatelliteData.ID,
-                                    "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
-                                    "_MSG3_9_S2.jpeg"
-                                    ),
-                      SatelliteData(-75.0, 5433878.562, 0,
-                                    SatelliteData.ID,
-                                    "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
-                                    "_GOES13_4_S2.jpeg"
-                                    ),
-                      SatelliteData(-135.0, 5433878.562, 0,
-                                    SatelliteData.ID,
-                                    "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
-                                    "_GOES15_4_S2.jpeg"
-                                    ),
-                      )
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="store intermediate results",
                         action="store_true")
     parser.add_argument("-c", "--conf_file", help="Specify config file", 
-                        metavar="FILE", default=os.path.expanduser("~/.CreateCloudMap/CreateCloudMap.ini"))
+                        metavar="FILE", 
+                        default=os.path.expanduser("~/.CreateCloudMap/CreateCloudMap.ini"))
     parser.add_argument("-f", "--force", help="Force to recreate cloud map",
                         action="store_true")
     args = parser.parse_args()
-    config = ConfigParser.SafeConfigParser()
+    config = ConfigParser.SafeConfigParser(
+                                           {'width': '2048',
+                                            'height': '1024',
+                                            'destinationfile': 'clouds_2048.jpg',
+                                            'resolution': 'medium'})
     config.read([args.conf_file])
     
-    username = dict(config.items("Download"))['username']
-    password = dict(config.items("Download"))['password']
-    tempdir  = dict(config.items("Download"))['tempdir']
-    outdir   = dict(config.items("xplanet"))['destinationdir']
+    username   = config.get("Download", 'username')
+    password   = config.get("Download", 'password')
+    tempdir    = config.get("Download", 'tempdir')
+    resolution = config.get("Download", 'resolution')
     
-    images = np.empty(shape=(5, 2, 1024, 2048))
+    outdir    = config.get("xplanet", 'destinationdir')
+    outfile   = config.get("xplanet", 'destinationfile')
+    SatelliteData.outwidth  = int(config.get("xplanet", 'width'))
+    SatelliteData.outheight = int(config.get("xplanet", 'height'))
+
+    resolution_str = {'medium': 'S2',
+                      'high': 'S1'}
+
+    try:
+        resfile = resolution_str[resolution]
+    except KeyError:
+        sys.exit('Wrong resolution specified in config file! ' +
+                 resolution + 
+                 ' Valid values are: medium, high')
+    
+    
+    satellite_list = (
+                  SatelliteData(145.0, 5433878.562*1.01, 50000,
+                                SatelliteData.curve,
+                                "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
+                                "_MTSAT2_4_" + resfile + ".jpeg"
+                                ),
+                  SatelliteData(57.0, 5568742.4*0.97, 0,
+                                SatelliteData.ID,
+                                "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
+                                "_MET7_2_" + resfile + ".jpeg"
+                                ),
+                  SatelliteData(0.0, 5433878.562, 0,
+                                SatelliteData.ID,
+                                "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
+                                "_MSG3_9_" + resfile + ".jpeg"
+                                ),
+                  SatelliteData(-75.0, 5433878.562, 0,
+                                SatelliteData.ID,
+                                "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
+                                "_GOES13_4_" + resfile + ".jpeg"
+                                ),
+                  SatelliteData(-135.0, 5433878.562, 0,
+                                SatelliteData.ID,
+                                "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
+                                "_GOES15_4_" + resfile + ".jpeg"
+                                ),
+                  )
+
+    images = np.empty(shape=(5, 2, 
+                             SatelliteData.outheight, 
+                             SatelliteData.outwidth))
     
     dt = datetime.datetime.utcnow()
     max_tries = 10
@@ -242,7 +283,8 @@ def main():
     if not found_all:
         sys.exit("Cannot download (all) satellite images!")
 
-    print "Download image date/time: ", satellite_list[0].dt.strftime("%Y-%m-%d %H:00 UTC")
+    print("Download image date/time: ", 
+          satellite_list[0].dt.strftime("%Y-%m-%d %H:00 UTC"))
     
     mkdir_p(tempdir)
 
@@ -254,8 +296,9 @@ def main():
         
     if (
         not args.force and
-        os.path.isfile(os.path.join(outdir, "clouds_2048.jpg")) and 
-        (os.path.getmtime(os.path.join(outdir, "clouds_2048.jpg")) > latest_download)
+        os.path.isfile(os.path.join(outdir, outfile)) and 
+        (os.path.getmtime(os.path.join(outdir, outfile)) 
+         > latest_download)
         ):
         sys.exit(0)
         
@@ -265,22 +308,24 @@ def main():
         if args.debug:
             saveDebug(img[0],
                       os.path.join(tempdir, "test" + `i` + ".jpeg"))
-            saveDebug(np.array(img[1]*255, 'uint8'),
+            saveDebug(np.array(img[1]/np.max(img[1][0,:])*255.0, 'uint8'),
                       os.path.join(tempdir, "weighttest" + `i` + ".jpeg"))
         images[i-1] = img
         i += 1
     
     weight_sum = np.sum(images[:, 1], axis = 0)
-    if args.debug: saveDebug(np.array(weight_sum*255, 'uint8'), os.path.join(tempdir, "weightsum.jpeg"))
+    if args.debug: saveDebug(np.array(weight_sum/np.max(weight_sum[0,:])*255.0,
+                                      'uint8'), 
+                             os.path.join(tempdir, "weightsum.jpeg"))
     new_image = np.sum(images[:, 0] * images[:, 1], axis = 0)/weight_sum
     
     mkdir_p(outdir)
 
     try:
-        os.remove(os.path.join(outdir, "clouds_2048.jpg"))
+        os.remove(os.path.join(outdir, outfile))
     except OSError:
         pass
-    saveImage(new_image, os.path.join(outdir, "clouds_2048.jpg"))
+    saveImage(new_image, os.path.join(outdir, outfile))
     if args.debug: saveDebug(new_image, 
                              os.path.join(tempdir,"test.jpeg"))
     print "finished"

@@ -13,18 +13,32 @@ To use this service you need an account there (which is free). Also a new cloud 
 
 Set your login information in the configuration file (default name for UNIX-like systems: ``$HOME/.CreateCloudMap/CreateCloudMap.ini``, for Windows: ``%HOME%\.CreateCloudMap\CreateCloudMap.ini``)::
 
-	[Download]
-	username = user
-	password = secret
-	tempdir = images
-	
-	[xplanet]
-	destinationdir = xplanet/images
-	
+  [Download]
+  username = user
+  password = secret
+  tempdir = images
+   # Use one of the followingj for resolution: medium, high
+  resolution = medium
+  
+  [xplanet]
+  destinationdir = xplanet/images
+  destinationfile = clouds_2048.jpg
+  width = 2048
+  height = 1024
+  
+If the configuration file already exists, a new version is copied to ``CreateCloudMap.ini.new`` to not overwrite the login data. 
+The old config file should work after an update, because default values are used for 
+newly introduced options.
+
 ``tempdir`` specifies the directory where the downloaded images (and if enabled by the command line 
 switch ``--debug`` or ``-d``) intermediate debug images are stored. For debug outputs to work, you need
 to (manually) install matplotlib and Basemap. ``destinationdir`` specifies the directory where 
-the output ``clouds_2048.jpg`` is saved.
+the output ``destinationfile`` is saved.
+
+``resolution`` can be set to ``medium`` or high`` to determine the resoluation
+of the downloaded satellite images (``low`` does not work at the moment.)
+
+``width`` and ``height`` set the dimensions of the cloud map in ``destinationfile``.
 
 To see all command line options of the script use ``--help``::
 

@@ -35,7 +35,7 @@ class Install(_install):
 
 setup(
     name='CreateCloudMap',
-    version='0.1.0',
+    version='0.2.0',
     packages=['cloudmap', ],
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images from the Dundee Satellite Receiving Station',
