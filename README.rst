@@ -35,7 +35,7 @@ switch ``--debug`` or ``-d``) intermediate debug images are stored. For debug ou
 to (manually) install matplotlib and Basemap. ``destinationdir`` specifies the directory where 
 the output ``destinationfile`` is saved.
 
-``resolution`` can be set to ``medium`` or high`` to determine the resoluation
+``resolution`` can be set to ``medium`` or ``high`` to determine the resolution
 of the downloaded satellite images (``low`` does not work at the moment.)
 
 ``width`` and ``height`` set the dimensions of the cloud map in ``destinationfile``.
