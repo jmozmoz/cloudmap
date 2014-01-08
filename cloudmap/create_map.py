@@ -12,6 +12,7 @@ import argparse
 import ConfigParser
 import sys
 import errno
+import glob
 
 def mkdir_p(path):
     try:
@@ -82,9 +83,17 @@ class SatelliteData:
         hour  = self.dt.strftime("%H").lstrip("0")
         str1 = self.dt.strftime("%Y/")+ month + "/" + day + "/" + hour + "00/"
         str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + hour + "00"
-        self.url      = self.base_url + str1 + str2 + self.suffix
-        self.filename = os.path.join(tempdir, str2 + self.suffix)
+        str3 = "*_*_*_*00"
+        self.url           = self.base_url + str1 + str2 + self.suffix
+        self.filename      = os.path.join(tempdir, str2 + self.suffix)
+        self.purge_pattern = os.path.join(tempdir, str3 + self.suffix)
             
+    def purge(self):
+        for fl in glob.glob(self.purge_pattern):
+            if fl == self.filename:
+                continue
+            os.remove(fl)
+
     def check_for_image(self):
         
         if os.path.isfile(self.filename):
@@ -210,13 +219,15 @@ def main():
                                            {'width': '2048',
                                             'height': '1024',
                                             'destinationfile': 'clouds_2048.jpg',
-                                            'resolution': 'medium'})
+                                            'resolution': 'medium',
+                                            'purge': 'false'})
     config.read([args.conf_file])
     
     username   = config.get("Download", 'username')
     password   = config.get("Download", 'password')
     tempdir    = config.get("Download", 'tempdir')
     resolution = config.get("Download", 'resolution')
+    purge      = config.get("Download", 'purge').lower() == 'true'
     
     outdir    = config.get("xplanet", 'destinationdir')
     outfile   = config.get("xplanet", 'destinationfile')
@@ -290,6 +301,8 @@ def main():
 
     latest_download = 0    
     for satellite in satellite_list:
+        if purge:
+            satellite.purge() 
         print "Satellite file: ", satellite.filename
         satellite.download_image()
         latest_download = max(latest_download, satellite.filemodtime)
