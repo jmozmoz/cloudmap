@@ -39,8 +39,8 @@ the output ``destinationfile`` is saved.
 ``resolution`` can be set to ``medium`` or ``high`` to determine the resolution
 of the downloaded satellite images (``low`` does not work at the moment.)
 
-If ``purge`` is set to true old satellite images not use to draw the current
-cloud map will be deleted.
+If ``purge`` is set to true old satellite images will be deleted which are not 
+used to draw the current cloud map.
 
 ``width`` and ``height`` set the dimensions of the cloud map in ``destinationfile``.
 
