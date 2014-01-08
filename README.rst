@@ -2,8 +2,8 @@ CreateCloudMap
 ==============
 
 Python script to create a cloud map for xplanet using satellite images from the 
-`Dundee Satellite Receiving Station, Dundee University, UK <http://www.sat.dundee.ac.uk/>`_
-This script can also be installed from pypi by pip: https://pypi.python.org/pypi/CreateCloudMap
+`Dundee Satellite Receiving Station, Dundee University, UK <http://www.sat.dundee.ac.uk/>`_.
+This script can also be installed by pip from `pypi <https://pypi.python.org/pypi/CreateCloudMap>`_.
 
 `xplanet <http://xplanet.sourceforge.net/>`_ can use a cloud map to make the earth look more pretty. 
 
