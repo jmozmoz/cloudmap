@@ -44,7 +44,7 @@ setup(
     author_email='Joachim.Herb@gmx.de',
     url = 'https://github.com/jmozmoz/cloudmap', 
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime', 
-                      'ConfigParser', 'PIL'],
+                      'ConfigParser', 'pillow'],
     entry_points={
         'console_scripts': [
             'create_map = cloudmap.create_map:main',
