@@ -35,7 +35,7 @@ class Install(_install):
 
 setup(
     name='CreateCloudMap',
-    version='0.4.0',
+    version='0.4.1',
     packages=['cloudmap', ],
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images from the Dundee Satellite Receiving Station',
@@ -44,7 +44,7 @@ setup(
     author_email='Joachim.Herb@gmx.de',
     url = 'https://github.com/jmozmoz/cloudmap', 
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime', 
-                      'ConfigParser', 'pillow'],
+                      'ConfigParser', 'pillow', 'setuptools>=0.7.2'],
     entry_points={
         'console_scripts': [
             'create_map = cloudmap.create_map:main',
