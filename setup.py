@@ -3,14 +3,17 @@ from setuptools.command.install import install as _install
 
 import os
 
+
 def mkdir_p(path):
     import errno
     try:
         os.makedirs(path)
-    except OSError as exc: # Python >2.5
+    except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
-        else: raise
+        else:
+            raise
+
 
 def copy_config():
     try:
@@ -24,8 +27,10 @@ def copy_config():
             copyfile(src, dstfile)
         else:
             copyfile(src, updatefile)
-                
-    except IndexError: pass
+
+    except IndexError:
+        pass
+
 
 class Install(_install):
     def run(self):
@@ -38,12 +43,13 @@ setup(
     version='0.4.2',
     packages=['cloudmap', ],
     license='GPL3',
-    description='Create a cloud map for xplanet using satellite images from the Dundee Satellite Receiving Station',
+    description='Create a cloud map for xplanet using satellite images ' + \
+                'from the Dundee Satellite Receiving Station',
     long_description=open('README.rst').read(),
     author='Joachim Herb',
     author_email='Joachim.Herb@gmx.de',
-    url = 'https://github.com/jmozmoz/cloudmap', 
-    install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime', 
+    url='https://github.com/jmozmoz/cloudmap',
+    install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
                       'ConfigParser', 'pillowfight', 'setuptools>=0.7.2'],
     entry_points={
         'console_scripts': [
@@ -51,7 +57,7 @@ setup(
         ]
     },
     classifiers=[
-         "Programming Language :: Python", 
+         "Programming Language :: Python",
          "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
          "Operating System :: OS Independent",
          "Development Status :: 4 - Beta",
@@ -68,8 +74,8 @@ setup(
              },
     scripts=['winpostinstall.py'],
     options={
-        "bdist_wininst" : {
-            "install_script" : "winpostinstall.py", 
+        "bdist_wininst": {
+            "install_script": "winpostinstall.py",
         },
     }
 )
