@@ -1,13 +1,15 @@
 import os
 
+
 def mkdir_p(path):
     import errno
     try:
         os.makedirs(path)
-    except OSError as exc: # Python >2.5
+    except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
-        else: raise
+        else:
+            raise
 
 from sys import argv
 try:
@@ -22,5 +24,6 @@ try:
             copyfile(src, dstfile)
         else:
             copyfile(src, updatefile)
-            
-except IndexError: pass
+
+except IndexError:
+    pass
