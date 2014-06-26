@@ -36,18 +36,20 @@ def saveImage(new_image, filename):
     img.save(filename)
 
 
-def saveDebug(new_image, filename):
+def saveDebug(weight_sum, filename):
     import matplotlib
     matplotlib.use('AGG', warn=False)
     from pyresample import plot
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 
+    new_image = np.array(255.0 * weight_sum / np.max(weight_sum[:, :]),
+                         'uint8')
     bmap = plot.area_def2basemap(SatelliteData.pc(), resolution='c')
     bmap.drawcoastlines()
     bmap.drawmeridians(np.arange(-180, 180, 45))
     bmap.drawparallels(np.arange(-90, 90, 10))
-    bmap.imshow(new_image, origin='upper', vmin=None, vmax=None,
+    bmap.imshow(new_image, origin='upper', vmin=0, vmax=255,
                 cmap=cm.Greys_r)
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=200)
     plt.close()
@@ -85,7 +87,7 @@ class SatelliteData:
 
     def set_time(self, dt, tempdir=""):
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    dt.hour / 3 * 3, 0, 0)
+                                    int(int(dt.hour / 3) * 3), 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")
@@ -340,15 +342,14 @@ def main():
         if args.debug:
             saveDebug(img[0],
                       os.path.join(tempdir, "test" + repr(i) + ".jpeg"))
-            saveDebug(np.array(img[1] / np.max(img[1][0, :]) * 255.0, 'uint8'),
+            saveDebug(img[1],
                       os.path.join(tempdir, "weighttest" + repr(i) + ".jpeg"))
         i += 1
         weight_sum = weight_sum + img[1]
         new_image = new_image + (img[0] * img[1])
 
     if args.debug:
-        saveDebug(np.array(weight_sum / np.max(weight_sum[0, :]) * 255.0,
-                           'uint8'),
+        saveDebug(weight_sum,
                   os.path.join(tempdir, "weightsum.jpeg"))
 
     new_image = new_image / weight_sum
