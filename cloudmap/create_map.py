@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from __future__ import division
 
 from PIL import Image
 from pyresample import image, geometry
@@ -127,7 +131,6 @@ class SatelliteData:
         right = img.shape[0] - 10
         for r in img[start:]:
             m = np.amin(r[left:right])
-    #        print m
             if (look and m < 255):
                 return i
             elif (not look and m == 255):
@@ -313,7 +316,7 @@ def main():
     for satellite in satellite_list:
         if purge:
             satellite.purge()
-        print "Satellite file: ", satellite.filename
+        print("Satellite file: " + satellite.filename)
         satellite.download_image()
         latest_download = max(latest_download, satellite.filemodtime)
 
@@ -359,7 +362,7 @@ def main():
     if args.debug:
         saveDebug(new_image,
                   os.path.join(tempdir, "test.jpeg"))
-    print "finished"
+    print("finished")
 
 if __name__ == '__main__':
     main()

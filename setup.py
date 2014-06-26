@@ -1,5 +1,9 @@
 from setuptools import setup
 from setuptools.command.install import install as _install
+from __future__ import print_function
+from __future__ import unicode_literals
+from __future__ import absolute_import
+from __future__ import division
 
 import os
 
