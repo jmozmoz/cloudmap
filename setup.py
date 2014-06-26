@@ -40,7 +40,7 @@ class Install(_install):
 
 setup(
     name='CreateCloudMap',
-    version='0.4.2',
+    version='0.5.0',
     packages=['cloudmap', ],
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images ' + \

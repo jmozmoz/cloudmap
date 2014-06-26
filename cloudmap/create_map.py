@@ -286,10 +286,6 @@ def main():
                         ),
           )
 
-    images = np.empty(shape=(5, 2,
-                             SatelliteData.outheight,
-                             SatelliteData.outwidth))
-
     dt = datetime.datetime.utcnow()
     max_tries = 10
 
@@ -329,6 +325,12 @@ def main():
         ):
         sys.exit(0)
 
+    new_image = np.empty(shape=(SatelliteData.outheight,
+                             SatelliteData.outwidth))
+
+    weight_sum = np.empty(shape=(SatelliteData.outheight,
+                             SatelliteData.outwidth))
+
     i = 1
     for satellite in satellite_list:
         img = satellite.project()
@@ -337,16 +339,16 @@ def main():
                       os.path.join(tempdir, "test" + repr(i) + ".jpeg"))
             saveDebug(np.array(img[1] / np.max(img[1][0, :]) * 255.0, 'uint8'),
                       os.path.join(tempdir, "weighttest" + repr(i) + ".jpeg"))
-        images[i - 1] = img
         i += 1
+        weight_sum = weight_sum + img[1]
+        new_image = new_image + (img[0] * img[1])
 
-    weight_sum = np.sum(images[:, 1], axis=0)
     if args.debug:
         saveDebug(np.array(weight_sum / np.max(weight_sum[0, :]) * 255.0,
                            'uint8'),
                   os.path.join(tempdir, "weightsum.jpeg"))
-    new_image = np.sum(images[:, 0] * images[:, 1], axis=0) / weight_sum
 
+    new_image = new_image / weight_sum
     mkdir_p(outdir)
 
     try:
