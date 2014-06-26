@@ -1,9 +1,9 @@
-from setuptools import setup
-from setuptools.command.install import install as _install
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
+from setuptools import setup
+from setuptools.command.install import install as _install
 
 import os
 
@@ -45,7 +45,7 @@ class Install(_install):
 setup(
     name='CreateCloudMap',
     version='0.5.0',
-    packages=['cloudmap', ],
+    packages=[b'cloudmap', ],
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images ' + \
                 'from the Dundee Satellite Receiving Station',
