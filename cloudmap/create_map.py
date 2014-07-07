@@ -50,7 +50,7 @@ def saveDebug(weight_sum, filename):
     bmap.drawmeridians(np.arange(-180, 180, 45))
     bmap.drawparallels(np.arange(-90, 90, 10))
     bmap.imshow(new_image, origin='upper', vmin=0, vmax=255,
-                cmap=cm.Greys_r)
+                cmap=cm.Greys_r)  # @UndefinedVariable
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=200)
     plt.close()
 
@@ -68,7 +68,6 @@ class SatelliteData:
         self.rescale = rescale
         self.base_url = base_url
         self.suffix = suffix
-        self.rescale = rescale
         self.filemodtime = 0
 
     def login(self, username, password):
@@ -91,9 +90,15 @@ class SatelliteData:
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")
-        str1 = self.dt.strftime("%Y/") + month + "/" + day + "/" + hour + "00/"
-        str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + hour + "00"
-        str3 = "*_*_*_*00"
+        if not hour:  # if hour empty then assume midnight
+            str1 = self.dt.strftime("%Y/") + month + "/" + day + "/" + "0/"
+            str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + "0"
+        else:
+            str1 = self.dt.strftime("%Y/") + month + "/" + day + \
+                "/" + hour + "00/"
+            str2 = self.dt.strftime("%Y_") + month + "_" + day + \
+                "_" + hour + "00"
+        str3 = "*_*_*_*"
         self.url = self.base_url + str1 + str2 + self.suffix
         self.filename = os.path.join(tempdir, str2 + self.suffix)
         self.purge_pattern = os.path.join(tempdir, str3 + self.suffix)
@@ -108,7 +113,7 @@ class SatelliteData:
         if os.path.isfile(self.filename):
             return True
         r = requests.head(self.url, auth=(self.username, self.password))
-        if r.status_code == requests.codes.ok:
+        if r.status_code == requests.codes.ok:  # @UndefinedVariable
             return True
         else:
             return False
@@ -330,11 +335,11 @@ def main():
         ):
         sys.exit(0)
 
-    new_image = np.empty(shape=(SatelliteData.outheight,
-                             SatelliteData.outwidth))
+    new_image = np.zeros(shape=(SatelliteData.outheight,
+                                SatelliteData.outwidth))
 
-    weight_sum = np.empty(shape=(SatelliteData.outheight,
-                             SatelliteData.outwidth))
+    weight_sum = np.zeros(shape=(SatelliteData.outheight,
+                                 SatelliteData.outwidth))
 
     i = 1
     for satellite in satellite_list:
