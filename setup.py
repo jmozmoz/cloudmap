@@ -41,10 +41,12 @@ class Install(_install):
         _install.run(self)
         copy_config()
 
+__version__ = ""  # get rid of warning, really import it from _version.py
+exec(open('cloudmap/_version.py').read())
 
 setup(
     name='CreateCloudMap',
-    version='0.5.0',
+    version=__version__,
     packages=[b'cloudmap', ],
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images ' + \
