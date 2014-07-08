@@ -118,11 +118,11 @@ class Dundee(object):
     def overlay(self, debug):
         mkdir_p(self.tempdir)
 
-        self.out_image = np.empty(shape=(SatelliteData.outheight,
-                     SatelliteData.outwidth))
+        self.out_image = np.zeros(shape=(SatelliteData.outheight,
+                                         SatelliteData.outwidth))
 
-        weight_sum = np.empty(shape=(SatelliteData.outheight,
-                                 SatelliteData.outwidth))
+        weight_sum = np.zeros(shape=(SatelliteData.outheight,
+                                     SatelliteData.outwidth))
 
         i = 1
         for satellite in self.satellite_list:

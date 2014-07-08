@@ -49,9 +49,15 @@ class SatelliteData(object):
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")
-        str1 = self.dt.strftime("%Y/") + month + "/" + day + "/" + hour + "00/"
-        str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + hour + "00"
-        str3 = "*_*_*_*00"
+        if not hour:  # if hour empty then assume midnight
+            str1 = self.dt.strftime("%Y/") + month + "/" + day + "/" + "0/"
+            str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + "0"
+        else:
+            str1 = self.dt.strftime("%Y/") + month + "/" + day + \
+                "/" + hour + "00/"
+            str2 = self.dt.strftime("%Y_") + month + "_" + day + \
+                "_" + hour + "00"
+        str3 = "*_*_*_*"
         self.url = self.base_url + str1 + str2 + self.suffix
         self.filename = os.path.join(tempdir, str2 + self.suffix)
         self.purge_pattern = os.path.join(tempdir, str3 + self.suffix)
