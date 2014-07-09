@@ -12,9 +12,10 @@ import sys
 from satellite import SatelliteData
 from dundee import Dundee
 from _version import __version__
-
+import time
 
 def main():
+    tic = time.clock()
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="store intermediate results",
                         action="store_true")
@@ -32,7 +33,8 @@ def main():
                                         'height': '1024',
                                         'destinationfile': 'clouds_2048.jpg',
                                         'resolution': 'medium',
-                                        'purge': 'false'}
+                                        'purge': 'false',
+                                        'nprocs': '1'}
                                        )
     config.read([args.conf_file])
 
@@ -44,11 +46,14 @@ def main():
 
     outdir = config.get("xplanet", 'destinationdir')
     outfile = config.get("xplanet", 'destinationfile')
+
+    nprocs = int(config.get("processing", 'nprocs'))
+
     SatelliteData.outwidth = int(config.get("xplanet", 'width'))
     SatelliteData.outheight = int(config.get("xplanet", 'height'))
 
     satellite_list = Dundee(resolution, username, password,
-                            tempdir)
+                            tempdir, nprocs)
     dt = satellite_list.find_latest()
 
     print("Download image date/time: ",
@@ -69,7 +74,9 @@ def main():
     satellite_list.overlay(args.debug)
     satellite_list.save_image(outdir, outfile)
 
-    print("finished")
+    toc = time.clock()
+
+    print("finished in {:.1f} s".format((toc-tic)))
 
 if __name__ == '__main__':
     main()

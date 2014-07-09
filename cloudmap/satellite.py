@@ -129,8 +129,6 @@ class SatelliteData(object):
         area_extent = (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
         x_size = SatelliteData.outwidth
         y_size = SatelliteData.outheight
-        print(x_size)
-        print(y_size)
         pc = geometry.AreaDefinition('pc', 'Plate Carree world map', 'pc',
                                      proj_dict, x_size, y_size, area_extent)
         return pc
@@ -190,7 +188,5 @@ class SatelliteData(object):
                                                 dataResampled.shape[1])])
         result = np.array([dataResampledImage,
                           np.tile(weight, (dataResampled.shape[0], 1))])
-        print("put queue project")
         q.put(result)
-        print("finished project")
         return result

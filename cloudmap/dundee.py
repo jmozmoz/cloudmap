@@ -11,7 +11,7 @@ import datetime
 import numpy as np
 import os
 from PIL import Image
-
+import time
 
 def curve(b):
     """Rescale the brightness values used for MTSAT2 satellite"""
@@ -50,10 +50,11 @@ def saveImage(new_image, filename):
 
 
 class Dundee(object):
-    def __init__(self, resolution, username, password, tempdir):
+    def __init__(self, resolution, username, password, tempdir, nprocs=1):
         self.username = username
         self.password = password
         self.tempdir = tempdir
+        self.nprocs = nprocs
 
         resolution_str = {'medium': 'S2',
                           'high': 'S1'}
@@ -136,46 +137,45 @@ class Dundee(object):
 
         from multiprocessing import Process, Queue
 
-        ps = []
+        pqs = []
         for satellite in self.satellite_list:
             satellite.outwidth = SatelliteData.outwidth
             satellite.outheight = SatelliteData.outheight
 
             q = Queue()
             p = Process(target=satellite.project, args=(q,))
-            ps.append((p, q))
+            pqs.append((p, q))
 
-        start_index = 0
-        nprocs = 1
-        for i in range(nprocs):
-            (p, _) = ps[start_index]
-            print("start " + str(start_index))
-            p.start()
-            start_index += 1
-
+        running = []
         i = 1
-        for (p, q) in ps:
-            img = q.get()
-            print("got result")
-            print("wait for join")
-            p.join()
-            print("joined")
-            if start_index < len(ps):
-                (pp, _) = ps[start_index]
-                print("start " + str(start_index))
-                pp.start()
-                start_index += 1
+        j = 1
+        while True:
+            if len(running) < self.nprocs and len(pqs) > 0:
+                (p, q) = pqs.pop()
+                running.append((p, q))
+                # print('started: ' + str(j))
+                j += 1
+                p.start()
 
-            if debug:
-                saveDebug(img[0],
-                          os.path.join(self.tempdir, "test" + repr(i) +
-                                       ".jpeg"))
-                saveDebug(img[1],
-                          os.path.join(self.tempdir, "weighttest" + repr(i) +
-                                       ".jpeg"))
-            i += 1
-            weight_sum = weight_sum + img[1]
-            self.out_image = self.out_image + (img[0] * img[1])
+            for (p, q) in running:
+                if not q.empty():
+                    img = q.get()
+                    if debug:
+                        saveDebug(img[0],
+                                  os.path.join(self.tempdir, "test" + repr(i) +
+                                               ".jpeg"))
+                        saveDebug(img[1],
+                                  os.path.join(self.tempdir, "weighttest" + repr(i) +
+                                               ".jpeg"))
+                    weight_sum = weight_sum + img[1]
+                    self.out_image = self.out_image + (img[0] * img[1])
+                    running.remove((p, q))
+                    # print('finished: ' + str(i))
+                    i += 1
+
+            if len(running) == 0 and len(pqs) == 0:
+                break
+            time.sleep(0.01)
 
         if debug:
             saveDebug(weight_sum,
