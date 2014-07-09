@@ -13,6 +13,16 @@ import os
 from PIL import Image
 
 
+def curve(b):
+    """Rescale the brightness values used for MTSAT2 satellite"""
+    return np.minimum(b * 255.0 / 193.0, 255)
+
+
+def ID(b):
+    """Identity function"""
+    return b
+
+
 def saveDebug(weight_sum, filename):
     import matplotlib
     matplotlib.use('AGG', warn=False)
@@ -27,7 +37,7 @@ def saveDebug(weight_sum, filename):
     bmap.drawmeridians(np.arange(-180, 180, 45))
     bmap.drawparallels(np.arange(-90, 90, 10))
     bmap.imshow(new_image, origin='upper', vmin=0, vmax=255,
-                cmap=cm.Greys_r)
+                cmap=cm.Greys_r)  # @UndefinedVariable
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=200)
     plt.close()
 
@@ -57,27 +67,27 @@ class Dundee(object):
 
         self.satellite_list = (
               SatelliteData(145.0, 5433878.562 * 1.01, 50000,
-                            SatelliteData.curve,
+                            curve,
                             "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
                             "_MTSAT2_4_" + resfile + ".jpeg"
                             ),
               SatelliteData(57.0, 5568742.4 * 0.97, 0,
-                            SatelliteData.ID,
+                            ID,
                             "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
                             "_MET7_2_" + resfile + ".jpeg"
                             ),
               SatelliteData(0.0, 5433878.562, 0,
-                            SatelliteData.ID,
+                            ID,
                             "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
                             "_MSG3_9_" + resfile + ".jpeg"
                             ),
               SatelliteData(-75.0, 5433878.562, 0,
-                            SatelliteData.ID,
+                            ID,
                             "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
                             "_GOES13_4_" + resfile + ".jpeg"
                             ),
               SatelliteData(-135.0, 5433878.562, 0,
-                            SatelliteData.ID,
+                            ID,
                             "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
                             "_GOES15_4_" + resfile + ".jpeg"
                             ),
@@ -124,9 +134,38 @@ class Dundee(object):
         weight_sum = np.zeros(shape=(SatelliteData.outheight,
                                      SatelliteData.outwidth))
 
-        i = 1
+        from multiprocessing import Process, Queue
+
+        ps = []
         for satellite in self.satellite_list:
-            img = satellite.project()
+            satellite.outwidth = SatelliteData.outwidth
+            satellite.outheight = SatelliteData.outheight
+
+            q = Queue()
+            p = Process(target=satellite.project, args=(q,))
+            ps.append((p, q))
+
+        start_index = 0
+        nprocs = 1
+        for i in range(nprocs):
+            (p, _) = ps[start_index]
+            print("start " + str(start_index))
+            p.start()
+            start_index += 1
+
+        i = 1
+        for (p, q) in ps:
+            img = q.get()
+            print("got result")
+            print("wait for join")
+            p.join()
+            print("joined")
+            if start_index < len(ps):
+                (pp, _) = ps[start_index]
+                print("start " + str(start_index))
+                pp.start()
+                start_index += 1
+
             if debug:
                 saveDebug(img[0],
                           os.path.join(self.tempdir, "test" + repr(i) +
