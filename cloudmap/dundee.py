@@ -135,47 +135,72 @@ class Dundee(object):
         weight_sum = np.zeros(shape=(SatelliteData.outheight,
                                      SatelliteData.outwidth))
 
-        from multiprocessing import Process, Queue
+        if self.nprocs == 1:
+            i = 1
+            for satellite in self.satellite_list:
+                img = satellite.project()
+                if debug:
+                    saveDebug(img[0],
+                              os.path.join(self.tempdir, "test" + repr(i) +
+                                           ".jpeg"))
+                    saveDebug(img[1],
+                              os.path.join(self.tempdir, "weighttest" + repr(i)
+                                           + ".jpeg"))
+                i += 1
+                weight_sum = weight_sum + img[1]
+                self.out_image = self.out_image + (img[0] * img[1])
 
-        pqs = []
-        for satellite in self.satellite_list:
-            satellite.outwidth = SatelliteData.outwidth
-            satellite.outheight = SatelliteData.outheight
+            if debug:
+                saveDebug(weight_sum,
+                          os.path.join(self.tempdir, "weightsum.jpeg"))
 
-            q = Queue()
-            p = Process(target=satellite.project, args=(q,))
-            pqs.append((p, q))
+            self.out_image = self.out_image / weight_sum
+            if debug:
+                saveDebug(self.out_image,
+                          os.path.join(self.tempdir, "test.jpeg"))
 
-        running = []
-        i = 1
-        j = 1
-        while True:
-            if len(running) < self.nprocs and len(pqs) > 0:
-                (p, q) = pqs.pop()
-                running.append((p, q))
-                # print('started: ' + str(j))
-                j += 1
-                p.start()
+        else:
+            from multiprocessing import Process, Queue
 
-            for (p, q) in running:
-                if not q.empty():
-                    img = q.get()
-                    if debug:
-                        saveDebug(img[0],
-                                  os.path.join(self.tempdir, "test" + repr(i) +
-                                               ".jpeg"))
-                        saveDebug(img[1],
-                                  os.path.join(self.tempdir, "weighttest" + repr(i) +
-                                               ".jpeg"))
-                    weight_sum = weight_sum + img[1]
-                    self.out_image = self.out_image + (img[0] * img[1])
-                    running.remove((p, q))
-                    # print('finished: ' + str(i))
-                    i += 1
+            pqs = []
+            for satellite in self.satellite_list:
+                satellite.outwidth = SatelliteData.outwidth
+                satellite.outheight = SatelliteData.outheight
 
-            if len(running) == 0 and len(pqs) == 0:
-                break
-            time.sleep(0.01)
+                q = Queue()
+                p = Process(target=satellite.project, args=(q,))
+                pqs.append((p, q))
+
+            running = []
+            i = 1
+            j = 1
+            while True:
+                if len(running) < self.nprocs and len(pqs) > 0:
+                    (p, q) = pqs.pop()
+                    running.append((p, q))
+                    # print('started: ' + str(j))
+                    j += 1
+                    p.start()
+
+                for (p, q) in running:
+                    if not q.empty():
+                        img = q.get()
+                        if debug:
+                            saveDebug(img[0],
+                                      os.path.join(self.tempdir, "test" +
+                                                   repr(i) + ".jpeg"))
+                            saveDebug(img[1],
+                                      os.path.join(self.tempdir, "weighttest" +
+                                                   repr(i) + ".jpeg"))
+                        weight_sum = weight_sum + img[1]
+                        self.out_image = self.out_image + (img[0] * img[1])
+                        running.remove((p, q))
+                        # print('finished: ' + str(i))
+                        i += 1
+
+                if len(running) == 0 and len(pqs) == 0:
+                    break
+                time.sleep(0.01)
 
         if debug:
             saveDebug(weight_sum,

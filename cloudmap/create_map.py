@@ -14,6 +14,7 @@ from dundee import Dundee
 from _version import __version__
 import time
 
+
 def main():
     tic = time.clock()
     parser = argparse.ArgumentParser()
@@ -47,7 +48,10 @@ def main():
     outdir = config.get("xplanet", 'destinationdir')
     outfile = config.get("xplanet", 'destinationfile')
 
-    nprocs = int(config.get("processing", 'nprocs'))
+    try:
+        nprocs = int(config.get("processing", 'nprocs'))
+    except ConfigParser.NoSectionError:
+        nprocs = 1
 
     SatelliteData.outwidth = int(config.get("xplanet", 'width'))
     SatelliteData.outheight = int(config.get("xplanet", 'height'))
@@ -76,7 +80,7 @@ def main():
 
     toc = time.clock()
 
-    print("finished in {:.1f} s".format((toc-tic)))
+    print("finished in {:.1f} s".format((toc - tic)))
 
 if __name__ == '__main__':
     main()

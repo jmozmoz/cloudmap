@@ -133,7 +133,7 @@ class SatelliteData(object):
                                      proj_dict, x_size, y_size, area_extent)
         return pc
 
-    def project(self, q):
+    def project(self, q=None):
         """Reproject the satellite image on an equirectangular map"""
 
         img = Image.open(self.filename).convert("L")
@@ -188,5 +188,7 @@ class SatelliteData(object):
                                                 dataResampled.shape[1])])
         result = np.array([dataResampledImage,
                           np.tile(weight, (dataResampled.shape[0], 1))])
-        q.put(result)
-        return result
+        if q:
+            q.put(result)
+        else:
+            return result
