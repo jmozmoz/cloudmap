@@ -13,6 +13,7 @@ import os
 from PIL import Image
 import time
 
+
 def curve(b):
     """Rescale the brightness values used for MTSAT2 satellite"""
     return np.minimum(b * 255.0 / 193.0, 255)
