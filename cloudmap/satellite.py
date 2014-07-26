@@ -11,6 +11,7 @@ import datetime
 import glob
 from pyresample import image, geometry
 from PIL import Image
+import sys
 
 
 class SatelliteData(object):
@@ -19,14 +20,28 @@ class SatelliteData(object):
     outwidth = 0
     outheight = 0
 
-    def __init__(self, longitude, extent, false_y, rescale, base_url, suffix):
+    def __init__(self, longitude, limit, rescale, base_url, suffix,
+                 resolution):
+        resolution_str = {'low': 'S4',
+                  'medium': 'S2',
+                  'high': 'S1'}
+        resolution_mult = {'low': 1,
+                           'medium': 2,
+                           'high': 4}
+
+        try:
+            resfile = resolution_str[resolution]
+            self.resolution_mult = resolution_mult[resolution]
+        except KeyError:
+            sys.exit('Wrong resolution specified in config file! ' +
+                     resolution +
+                     ' Valid values are: medium, high')
+
         self.longitude = longitude
-        self.extent = extent
-        self.false_y = false_y
+        self.limit = limit
         self.rescale = rescale
-        self.base_url = base_url
-        self.suffix = suffix
-        self.rescale = rescale
+        self.base_url = "http://www.sat.dundee.ac.uk/xrit/" + base_url
+        self.suffix = suffix + resfile + ".jpeg"
         self.filemodtime = 0
 
     def login(self, username, password):
@@ -72,7 +87,7 @@ class SatelliteData(object):
         if os.path.isfile(self.filename):
             return True
         r = requests.head(self.url, auth=(self.username, self.password))
-        if r.status_code == requests.codes.ok:
+        if r.status_code == requests.codes.ok:  # @UndefinedVariable
             return True
         else:
             return False
@@ -104,24 +119,12 @@ class SatelliteData(object):
             i = i + 1
         return 0
 
-    def cut_borders(self):
+    def cut_borders(self, data):
         """Remove the white border of a satellite images (including text)"""
 
-        x1 = self.findStartIndex(self.data)
-        self.data = self.data[x1:, :]
-        self.data = self.data[::-1]
-        x2 = self.findStartIndex(self.data)
-        self.data = self.data[x2:, :]
-        self.data = self.data[::-1]
-
-        self.data = self.data.T
-        x1 = self.findStartIndex(self.data)
-        self.data = self.data[x1:, :]
-        self.data = self.data[::-1]
-        x2 = self.findStartIndex(self.data)
-        self.data = self.data[x2:, :]
-        self.data = self.data[::-1]
-        return self.data.T
+        l = {}
+        l.update((x, y * self.resolution_mult) for x, y in self.limit.items())
+        return data[l['top']:l['bottom'], l['left']:l['right']]
 
     @staticmethod
     def pc():
@@ -137,15 +140,14 @@ class SatelliteData(object):
         """Reproject the satellite image on an equirectangular map"""
 
         img = Image.open(self.filename).convert("L")
-        self.data = np.array(img)
-        self.data = self.cut_borders()
+        self.data = self.cut_borders(np.array(img))
 
         x_size = self.data.shape[1]
         y_size = self.data.shape[0]
-        proj_dict = {'a': '6378169.0', 'b': '6356584.0',
+        proj_dict = {'a': '6378137.0', 'b': '6356752.3',
                      'lon_0': self.longitude,
-                     'y_0': self.false_y,
                      'h': '35785831.0', 'proj': 'geos'}
+        self.extent = 5568742.4 * 0.964
         area_extent = (-self.extent, -self.extent,
                        self.extent, self.extent)
         area = geometry.AreaDefinition('geo', 'geostat', 'geo',
@@ -163,7 +165,7 @@ class SatelliteData(object):
         dataResampledImage = self.rescale(dataResampled.image_data)
 
         # create fantasy polar clouds by mirroring high latitude data
-        polar_height = int(90.0 / 1024.0 * SatelliteData.outheight)
+        polar_height = int(95.0 / 1024.0 * SatelliteData.outheight)
         north_pole_indices = range(0, polar_height)
         north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
         dataResampledImage[north_pole_indices, :] =\
