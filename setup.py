@@ -3,9 +3,16 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 from setuptools import setup
-from setuptools.command.install import install as _install
 
+from setuptools.command.install import install as _install
 import os
+import versioneer
+
+versioneer.VCS = 'git'
+versioneer.versionfile_source = 'cloudmap/_version.py'
+versioneer.versionfile_build = 'cloudmap/_version.py'
+versioneer.tag_prefix = ''  # tags are like 1.2.0
+versioneer.parentdir_prefix = 'CreateCloudMap-'
 
 
 def mkdir_p(path):
@@ -41,13 +48,14 @@ class Install(_install):
         _install.run(self)
         copy_config()
 
-__version__ = ""  # get rid of warning, really import it from _version.py
-exec(open('cloudmap/_version.py').read())
+cmdclass = versioneer.get_cmdclass()
+cmdclass['install'] = Install
 
 setup(
     name='CreateCloudMap',
-    version=__version__,
+    version=versioneer.get_version(),
     packages=[b'cloudmap', ],
+    cmdclass=cmdclass,
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images ' + \
                 'from the Dundee Satellite Receiving Station',
@@ -76,8 +84,6 @@ setup(
          "Topic :: Scientific/Engineering :: Visualization",
          "Topic :: Utilities",
          ],
-    cmdclass={'install': Install,
-             },
     scripts=['winpostinstall.py'],
     options={
         "bdist_wininst": {

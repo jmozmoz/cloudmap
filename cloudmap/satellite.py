@@ -33,19 +33,19 @@ class SatelliteData(object):
         self.username = username
         self.password = password
 
-    @staticmethod
-    def curve(b):
-        """Rescale the brightness values used for MTSAT2 satellite"""
-        return np.minimum(b * 255.0 / 193.0, 255)
-
-    @staticmethod
-    def ID(b):
-        """Identity function"""
-        return b
+#     @staticmethod
+#     def curve(b):
+#         """Rescale the brightness values used for MTSAT2 satellite"""
+#         return np.minimum(b * 255.0 / 193.0, 255)
+#
+#     @staticmethod
+#     def ID(b):
+#         """Identity function"""
+#         return b
 
     def set_time(self, dt, tempdir=""):
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    int(int(dt.hour / 3) * 3), 0, 0)
+                                    int((dt.hour // 3) * 3), 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")
@@ -133,7 +133,7 @@ class SatelliteData(object):
                                      proj_dict, x_size, y_size, area_extent)
         return pc
 
-    def project(self):
+    def project(self, q=None):
         """Reproject the satellite image on an equirectangular map"""
 
         img = Image.open(self.filename).convert("L")
@@ -155,6 +155,10 @@ class SatelliteData(object):
 
 #         msg_con_nn = image.ImageContainerNearest(data, area,
 #                                                  radius_of_influence=50000)
+
+        SatelliteData.outwidth = self.outwidth
+        SatelliteData.outheight = self.outheight
+
         dataResampled = dataIC.resample(SatelliteData.pc())
         dataResampledImage = self.rescale(dataResampled.image_data)
 
@@ -182,5 +186,9 @@ class SatelliteData(object):
                            for x in np.linspace(-180,
                                                 180,
                                                 dataResampled.shape[1])])
-        return np.array([dataResampledImage,
-                         np.tile(weight, (dataResampled.shape[0], 1))])
+        result = np.array([dataResampledImage,
+                          np.tile(weight, (dataResampled.shape[0], 1))])
+        if q:
+            q.put(result)
+        else:
+            return result
