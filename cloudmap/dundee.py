@@ -30,15 +30,15 @@ def saveDebug(weight_sum, filename):
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 
-    new_image = np.array(255.0 * weight_sum / np.max(weight_sum[:, :]),
+    new_image = np.array(255.0 * weight_sum / np.max(weight_sum),
                          'uint8')
     bmap = plot.area_def2basemap(SatelliteData.pc(), resolution='c')
-    bmap.drawcoastlines()
-    bmap.drawmeridians(np.arange(-180, 180, 45))
-    bmap.drawparallels(np.arange(-90, 90, 10))
+    bmap.drawcoastlines(linewidth=0.2, color='red')
+    bmap.drawmeridians(np.arange(-180, 180, 45), linewidth=0.2, color='red')
+    bmap.drawparallels(np.arange(-90, 90, 10), linewidth=0.2, color='red')
     bmap.imshow(new_image, origin='upper', vmin=0, vmax=255,
                 cmap=cm.Greys_r)  # @UndefinedVariable
-    plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=200)
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=400)
     plt.close()
 
 
@@ -56,41 +56,46 @@ class Dundee(object):
         self.tempdir = tempdir
         self.nprocs = nprocs
 
-        resolution_str = {'medium': 'S2',
-                          'high': 'S1'}
-
-        try:
-            resfile = resolution_str[resolution]
-        except KeyError:
-            sys.exit('Wrong resolution specified in config file! ' +
-                     resolution +
-                     ' Valid values are: medium, high')
-
         self.satellite_list = (
-              SatelliteData(145.0, 5433878.562 * 1.01, 50000,
-                            curve,
-                            "http://www.sat.dundee.ac.uk/xrit/145.0E/MTSAT/",
-                            "_MTSAT2_4_" + resfile + ".jpeg"
+              SatelliteData(longitude=145.0,
+                            limit={'left': 9, 'right': 680,
+                                   'top': 12, 'bottom': 683},
+                            rescale=curve,
+                            base_url="145.0E/MTSAT/",
+                            suffix="_MTSAT2_4_",
+                            resolution=resolution
                             ),
-              SatelliteData(57.0, 5568742.4 * 0.97, 0,
-                            ID,
-                            "http://www.sat.dundee.ac.uk/xrit/057.0E/MET/",
-                            "_MET7_2_" + resfile + ".jpeg"
+              SatelliteData(longitude=57.0,
+                            limit={'left': 13, 'right': 612,
+                                   'top': 13, 'bottom': 612},
+                            rescale=ID,
+                            base_url="057.0E/MET/",
+                            suffix="_MET7_2_",
+                            resolution=resolution
                             ),
-              SatelliteData(0.0, 5433878.562, 0,
-                            ID,
-                            "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
-                            "_MSG3_9_" + resfile + ".jpeg"
+              SatelliteData(longitude=0.0,
+                            limit={'left': 16, 'right': 913,
+                                   'top': 16, 'bottom': 913},
+                            rescale=ID,
+                            base_url="000.0E/MSG/",
+                            suffix="_MSG3_9_",
+                            resolution=resolution
                             ),
-              SatelliteData(-75.0, 5433878.562, 0,
-                            ID,
-                            "http://www.sat.dundee.ac.uk/xrit/075.0W/GOES/",
-                            "_GOES13_4_" + resfile + ".jpeg"
+              SatelliteData(longitude=-75.0,
+                            limit={'left': 16, 'right': 688,
+                                   'top': 70, 'bottom': 744},
+                            rescale=ID,
+                            base_url="075.0W/GOES/",
+                            suffix="_GOES13_4_",
+                            resolution=resolution
                             ),
-              SatelliteData(-135.0, 5433878.562, 0,
-                            ID,
-                            "http://www.sat.dundee.ac.uk/xrit/135.0W/GOES/",
-                            "_GOES15_4_" + resfile + ".jpeg"
+              SatelliteData(longitude=-135.0,
+                            limit={'left': 16, 'right': 688,
+                                   'top': 70, 'bottom': 744},
+                            rescale=ID,
+                            base_url="135.0W/GOES/",
+                            suffix="_GOES15_4_",
+                            resolution=resolution
                             ),
               )
 
@@ -140,33 +145,16 @@ class Dundee(object):
             for satellite in self.satellite_list:
                 img = satellite.project()
                 if debug:
-                    saveDebug(img[0],
-                              os.path.join(self.tempdir, "test" + repr(i) +
-                                           ".jpeg"))
-                    saveDebug(img[1],
-                              os.path.join(self.tempdir, "weighttest" + repr(i)
-                                           + ".jpeg"))
+                    self.imageDebug(i, img)
                 i += 1
                 weight_sum = weight_sum + img[1]
                 self.out_image = self.out_image + (img[0] * img[1])
-
-            if debug:
-                saveDebug(weight_sum,
-                          os.path.join(self.tempdir, "weightsum.jpeg"))
-
-            self.out_image = self.out_image / weight_sum
-            if debug:
-                saveDebug(self.out_image,
-                          os.path.join(self.tempdir, "test.jpeg"))
-
         else:
             from multiprocessing import Process, Queue
-
             pqs = []
             for satellite in self.satellite_list:
                 satellite.outwidth = SatelliteData.outwidth
                 satellite.outheight = SatelliteData.outheight
-
                 q = Queue()
                 p = Process(target=satellite.project, args=(q,))
                 pqs.append((p, q))
@@ -178,36 +166,26 @@ class Dundee(object):
                 if len(running) < self.nprocs and len(pqs) > 0:
                     (p, q) = pqs.pop()
                     running.append((p, q))
-                    # print('started: ' + str(j))
                     j += 1
                     p.start()
-
                 for (p, q) in running:
                     if not q.empty():
                         img = q.get()
                         if debug:
-                            saveDebug(img[0],
-                                      os.path.join(self.tempdir, "test" +
-                                                   repr(i) + ".jpeg"))
-                            saveDebug(img[1],
-                                      os.path.join(self.tempdir, "weighttest" +
-                                                   repr(i) + ".jpeg"))
+                            self.imageDebug(i, img)
                         weight_sum = weight_sum + img[1]
                         self.out_image = self.out_image + (img[0] * img[1])
                         running.remove((p, q))
-                        # print('finished: ' + str(i))
                         i += 1
-
                 if len(running) == 0 and len(pqs) == 0:
                     break
                 time.sleep(0.01)
 
+        self.out_image = self.out_image / weight_sum
+
         if debug:
             saveDebug(weight_sum,
                       os.path.join(self.tempdir, "weightsum.jpeg"))
-
-        self.out_image = self.out_image / weight_sum
-        if debug:
             saveDebug(self.out_image,
                       os.path.join(self.tempdir, "test.jpeg"))
 
@@ -219,3 +197,11 @@ class Dundee(object):
         except OSError:
             pass
         saveImage(self.out_image, os.path.join(outdir, outfile))
+
+    def imageDebug(self, i, img):
+        saveDebug(img[0],
+                  os.path.join(self.tempdir, "test" +
+                               repr(i) + ".jpeg"))
+        saveDebug(img[1],
+                  os.path.join(self.tempdir, "weighttest" +
+                               repr(i) + ".jpeg"))
