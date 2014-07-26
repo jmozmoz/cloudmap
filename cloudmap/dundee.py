@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from mkdir import mkdir_p
-from satellite import SatelliteData
+from cloudmap import mkdir, SatelliteData
 
 import sys
 import datetime
@@ -128,7 +127,7 @@ class Dundee(object):
         return latest_download
 
     def overlay(self, debug):
-        mkdir_p(self.tempdir)
+        mkdir.mkdir_p(self.tempdir)
 
         self.out_image = np.zeros(shape=(SatelliteData.outheight,
                                          SatelliteData.outwidth))
@@ -213,7 +212,7 @@ class Dundee(object):
                       os.path.join(self.tempdir, "test.jpeg"))
 
     def save_image(self, outdir, outfile):
-        mkdir_p(outdir)
+        mkdir.mkdir_p(outdir)
 
         try:
             os.remove(os.path.join(outdir, outfile))

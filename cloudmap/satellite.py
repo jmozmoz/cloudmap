@@ -45,7 +45,7 @@ class SatelliteData(object):
 
     def set_time(self, dt, tempdir=""):
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    int(int(dt.hour / 3) * 3), 0, 0)
+                                    int((dt.hour // 3) * 3), 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")

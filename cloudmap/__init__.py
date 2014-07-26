@@ -1,13 +1,7 @@
-# from mkdir import *
-# from satellite import *
-# from dundee import *
-
-
-from mkdir import mkdir_p
 from satellite import SatelliteData
 from dundee import Dundee
+from mkdir import mkdir_p
 
-# import satellite.SatelliteData as SatelliteData
-# import dundee.Dundee as Dundee
-
-from _version import __version__
+from _version import get_versions
+__version__ = get_versions()['version']
+del get_versions

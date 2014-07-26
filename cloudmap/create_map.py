@@ -8,11 +8,9 @@ import argparse
 import ConfigParser
 import os
 import sys
-
-from satellite import SatelliteData
-from dundee import Dundee
-from _version import __version__
 import time
+
+from cloudmap import SatelliteData, Dundee, __version__
 
 
 def main():
