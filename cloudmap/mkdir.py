@@ -7,6 +7,7 @@ import errno
 
 
 def mkdir_p(path):
+    """Equivalent for unix command mkdir -p"""
     try:
         os.makedirs(path)
     except OSError as exc:  # Python >2.5

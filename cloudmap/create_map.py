@@ -14,6 +14,11 @@ from cloudmap import SatelliteData, Dundee, __version__
 
 
 def main():
+    """
+    Create world satellite image using the latest images from the
+    Dundee server
+    """
+
     tic = time.clock()
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="store intermediate results",

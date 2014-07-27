@@ -15,15 +15,19 @@ import time
 
 def curve(b):
     """Rescale the brightness values used for MTSAT2 satellite"""
+
     return np.minimum(b * 255.0 / 193.0, 255)
 
 
 def ID(b):
     """Identity function"""
+
     return b
 
 
 def saveDebug(weight_sum, filename):
+    """Save image for debugging onto map with grid and coastlines"""
+
     import matplotlib
     matplotlib.use('AGG', warn=False)
     from pyresample import plot
@@ -50,7 +54,27 @@ def saveImage(new_image, filename):
 
 
 class Dundee(object):
+
+    """
+    Class to download and process all images from the Dundee server
+    """
+
     def __init__(self, resolution, username, password, tempdir, nprocs=1):
+        """
+        Args:
+            * resolution:
+                resolution of the image to be downloaded (low, medium, high)
+            * username:
+                username of Dundee accoun
+            * password:
+                password of Dundee accoun
+            * tempdir:
+                directory to store downloaded images (will be created
+                if necessary)
+            * nprocs:
+                number of processors to used for image processing
+        """
+
         self.username = username
         self.password = password
         self.tempdir = tempdir
@@ -100,6 +124,10 @@ class Dundee(object):
               )
 
     def find_latest(self):
+        """
+        Find the latest time for which all satellite images can
+        be downloaded
+        """
         dt = datetime.datetime.utcnow()
         max_tries = 10
 
@@ -121,6 +149,13 @@ class Dundee(object):
         return self.satellite_list[0].dt
 
     def download(self, purge):
+        """
+        Download all satellite images
+
+        Args:
+            * purge:
+                Should all old satellite images be purged
+        """
         latest_download = 0
         for satellite in self.satellite_list:
             if purge:
@@ -132,6 +167,14 @@ class Dundee(object):
         return latest_download
 
     def overlay(self, debug):
+        """
+        Create overlay of all satellite images onto one world map
+
+        Args:
+            * debug:
+                Should images created during the image processing be saved
+        """
+
         mkdir.mkdir_p(self.tempdir)
 
         self.out_image = np.zeros(shape=(SatelliteData.outheight,
@@ -190,6 +233,16 @@ class Dundee(object):
                       os.path.join(self.tempdir, "test.jpeg"))
 
     def save_image(self, outdir, outfile):
+        """
+        Save the created world satellite image
+
+        Args:
+            * outdir:
+                Directory the image should be saved in
+            * outfile:
+                Filename of the image
+        """
+
         mkdir.mkdir_p(outdir)
 
         try:
@@ -199,6 +252,17 @@ class Dundee(object):
         saveImage(self.out_image, os.path.join(outdir, outfile))
 
     def imageDebug(self, i, img):
+        """
+        Save intermediary image and corresponding local weighting values
+
+        Args:
+            * i:
+                sequential number of image
+            * img:
+                two dimensional array containing two images
+                (the real image and the weighting values)
+        """
+
         saveDebug(img[0],
                   os.path.join(self.tempdir, "test" +
                                repr(i) + ".jpeg"))

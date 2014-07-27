@@ -16,12 +16,35 @@ import sys
 
 class SatelliteData(object):
 
+    """
+    A class to download and process satellite image
+    """
+
     # size of the output image
     outwidth = 0
     outheight = 0
 
     def __init__(self, longitude, limit, rescale, base_url, suffix,
                  resolution):
+        """
+        Args:
+
+            * longitude:
+                the longitude the satellite is positioned
+            * limit:
+                borders of the real satellite data in the
+                downloaded image
+            * rescale:
+                function to rescale image colors (if not the
+                full color space is used)
+            * base_url:
+                the url the image to download
+            * suffix:
+                suffix of the image name
+            * resolution:
+                resolution of the image to be downloaded (low, medium, high)
+        """
+
         resolution_str = {'low': 'S4',
                   'medium': 'S2',
                   'high': 'S1'}
@@ -45,6 +68,15 @@ class SatelliteData(object):
         self.filemodtime = 0
 
     def login(self, username, password):
+        """
+        Setup login data
+
+        Args:
+            * username:
+                username of Dundee accoun
+            * password:
+                password of Dundee accoun
+        """
         self.username = username
         self.password = password
 
@@ -59,6 +91,15 @@ class SatelliteData(object):
 #         return b
 
     def set_time(self, dt, tempdir=""):
+        """
+        Setup satellite download image name based on time
+
+        Args:
+            * dt:
+                datetime representation of time satellite image was taken
+            * tempdir:
+                directory to store downloaded images
+        """
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
                                     int((dt.hour // 3) * 3), 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
@@ -78,12 +119,17 @@ class SatelliteData(object):
         self.purge_pattern = os.path.join(tempdir, str3 + self.suffix)
 
     def purge(self):
+        """Remove old satellite images"""
         for fl in glob.glob(self.purge_pattern):
             if fl == self.filename:
                 continue
             os.remove(fl)
 
     def check_for_image(self):
+        """
+        Test if image has already be downloaded or that it can be
+        downloaded from the Dundee server
+        """
         if os.path.isfile(self.filename):
             return True
         r = requests.head(self.url, auth=(self.username, self.password))
@@ -93,6 +139,7 @@ class SatelliteData(object):
             return False
 
     def download_image(self):
+        """Download the image if it has not been donwloaded before"""
         if os.path.isfile(self.filename):
             self.filemodtime = os.path.getmtime(self.filename)
             return
@@ -100,24 +147,6 @@ class SatelliteData(object):
         i = Image.open(StringIO(r.content))
         i.save(self.filename)
         self.filemodtime = os.path.getmtime(self.filename)
-
-    def findStartIndex(self, img):
-        """Return the first row index not containing the white
-        border at the top"""
-
-        look = False
-        start = 3
-        i = start
-        left = 10
-        right = img.shape[0] - 10
-        for r in img[start:]:
-            m = np.amin(r[left:right])
-            if (look and m < 255):
-                return i
-            elif (not look and m == 255):
-                look = True
-            i = i + 1
-        return 0
 
     def cut_borders(self, data):
         """Remove the white border of a satellite images (including text)"""
@@ -128,6 +157,7 @@ class SatelliteData(object):
 
     @staticmethod
     def pc():
+        """Create area defintion for world map in Plate Carree projection"""
         proj_dict = {'proj': 'eqc'}
         area_extent = (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
         x_size = SatelliteData.outwidth
@@ -137,7 +167,15 @@ class SatelliteData(object):
         return pc
 
     def project(self, q=None):
-        """Reproject the satellite image on an equirectangular map"""
+        """
+        Reproject the satellite image on an equirectangular map
+
+        Args:
+            * q:
+                Optional: Use the queue to send
+                the reprojected image to. If not set then return
+                image
+        """
 
         img = Image.open(self.filename).convert("L")
         self.data = self.cut_borders(np.array(img))
