@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from cloudmap import mkdir, SatelliteData
+from .mkdir import mkdir_p
+from .satellite import SatelliteData
+
+#from .__init__ import mkdir_p, SatelliteData
 
 import sys
 import datetime
@@ -175,7 +178,7 @@ class Dundee(object):
                 Should images created during the image processing be saved
         """
 
-        mkdir.mkdir_p(self.tempdir)
+        mkdir_p(self.tempdir)
 
         self.out_image = np.zeros(shape=(SatelliteData.outheight,
                                          SatelliteData.outwidth))
@@ -243,7 +246,7 @@ class Dundee(object):
                 Filename of the image
         """
 
-        mkdir.mkdir_p(outdir)
+        mkdir_p(outdir)
 
         try:
             os.remove(os.path.join(outdir, outfile))

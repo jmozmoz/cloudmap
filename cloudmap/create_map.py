@@ -10,7 +10,7 @@ import os
 import sys
 import time
 
-from cloudmap import SatelliteData, Dundee, __version__
+from .__init__ import Dundee, SatelliteData, __version__
 
 
 def main():
