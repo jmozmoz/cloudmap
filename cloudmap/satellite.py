@@ -46,8 +46,8 @@ class SatelliteData(object):
         """
 
         resolution_str = {'low': 'S4',
-                  'medium': 'S2',
-                  'high': 'S1'}
+                          'medium': 'S2',
+                          'high': 'S1'}
         resolution_mult = {'low': 1,
                            'medium': 2,
                            'high': 4}
@@ -167,8 +167,94 @@ class SatelliteData(object):
         return pc
 
     def project(self, q=None):
+        return self.project_cartopy(q)
+
+    def project_cartopy(self, q=None):
         """
-        Reproject the satellite image on an equirectangular map
+        Reproject the satellite image on an equirectangular map using the
+        cartopy library
+
+        Args:
+            * q:
+                Optional: Use the queue to send
+                the reprojected image to. If not set then return
+                image
+        """
+        import matplotlib.pyplot as plt
+        import cartopy.crs as ccrs
+        import matplotlib.cm as cm
+        import cartopy.feature as cfeature
+
+        img = Image.open(self.filename).convert("L")
+        self.data = self.cut_borders(np.array(img))
+
+        width = SatelliteData.outwidth
+        height = SatelliteData.outheight
+
+        fig = plt.figure(frameon=False, dpi=1, figsize=(width, height))
+
+        ax = plt.axes([0., 0., 1., 1.], projection=ccrs.PlateCarree())
+        fig.add_axes(ax)
+        ax.set_global()
+        ax.set_axis_off()
+
+        ax.imshow(self.data, origin='upper',
+                  transform=ccrs.Geostationary(central_longitude=self.longitude,
+                                               satellite_height=35785831.0
+                                               ),
+                  vmin=0, vmax=255,
+                  cmap=cm.Greys_r,  # @UndefinedVariable
+                  )
+
+        if False:
+            ax.gridlines(draw_labels=False, axes=0, linewidth=10)
+            ax.add_feature(cfeature.OCEAN, facecolor='aqua', alpha='0.1')
+            ax.add_feature(cfeature.BORDERS, alpha='0.2', linewidth="20")
+            ax.coastlines(resolution='50m', color='black', linewidth="20")
+
+        fig.canvas.draw()
+#        plt.show()
+        w, h = fig.canvas.get_width_height()
+        buf = np.fromstring(fig.canvas.tostring_rgb(),
+                            dtype=np.uint8).reshape(h, w, 3)
+
+        dataResampledImage = buf[:, :, 0]
+
+        # create fantasy polar clouds by mirroring high latitude data
+        polar_height = int(95.0 / 1024.0 * SatelliteData.outheight)
+        north_pole_indices = range(0, polar_height)
+        north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
+        dataResampledImage[north_pole_indices, :] =\
+            dataResampledImage[north_pole_copy_indices, :]
+        south_pole_indices = range(SatelliteData.outheight - polar_height,
+                                   SatelliteData.outheight)
+        south_pole_copy_indices = range(SatelliteData.outheight - polar_height,
+                                        SatelliteData.outheight -
+                                        2 * polar_height,
+                                        -1)
+        dataResampledImage[south_pole_indices, :] = \
+            dataResampledImage[south_pole_copy_indices, :]
+
+        width = 55
+        weight = np.array([max((width -
+                                min([abs(self.longitude - x),
+                                    abs(self.longitude - x + 360),
+                                    abs(self.longitude - x - 360)])) / 180,
+                               1e-7)
+                           for x in np.linspace(-180,
+                                                180,
+                                                w)])
+        result = np.array([dataResampledImage,
+                          np.tile(weight, (h, 1))])
+        if q:
+            q.put(result)
+        else:
+            return result
+
+    def project_pyresample(self, q=None):
+        """
+        Reproject the satellite image on an equirectangular map using the
+        pyresample library
 
         Args:
             * q:
@@ -196,9 +282,6 @@ class SatelliteData(object):
 #         msg_con_nn = image.ImageContainerNearest(data, area,
 #                                                  radius_of_influence=50000)
 
-        SatelliteData.outwidth = self.outwidth
-        SatelliteData.outheight = self.outheight
-
         dataResampled = dataIC.resample(SatelliteData.pc())
         dataResampledImage = self.rescale(dataResampled.image_data)
 
@@ -218,11 +301,11 @@ class SatelliteData(object):
             dataResampledImage[south_pole_copy_indices, :]
 
         width = 55
-        weight = np.array([max((width - \
+        weight = np.array([max((width -
                                 min([abs(self.longitude - x),
-                                abs(self.longitude - x + 360),
-                                abs(self.longitude - x - 360)])) / 180,
-                               1e-7) \
+                                    abs(self.longitude - x + 360),
+                                    abs(self.longitude - x - 360)])) / 180,
+                               1e-7)
                            for x in np.linspace(-180,
                                                 180,
                                                 dataResampled.shape[1])])

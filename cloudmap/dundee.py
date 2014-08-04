@@ -28,6 +28,14 @@ def ID(b):
     return b
 
 
+def saveDebug_1(buf, filename):
+    """Save satellite image"""
+    new_image = np.array(255.0 * buf / np.max(buf),
+                         'uint8')
+    img = Image.fromarray(new_image).convert('RGB')
+    img.save(filename)
+
+
 def saveDebug(weight_sum, filename):
     """Save image for debugging onto map with grid and coastlines"""
 
@@ -45,6 +53,8 @@ def saveDebug(weight_sum, filename):
     bmap.drawparallels(np.arange(-90, 90, 10), linewidth=0.2, color='red')
     bmap.imshow(new_image, origin='upper', vmin=0, vmax=255,
                 cmap=cm.Greys_r)  # @UndefinedVariable
+#    plt.show()
+
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=400)
     plt.close()
 
@@ -199,8 +209,6 @@ class Dundee(object):
             from multiprocessing import Process, Queue
             pqs = []
             for satellite in self.satellite_list:
-                satellite.outwidth = SatelliteData.outwidth
-                satellite.outheight = SatelliteData.outheight
                 q = Queue()
                 p = Process(target=satellite.project, args=(q,))
                 pqs.append((p, q))
@@ -230,9 +238,9 @@ class Dundee(object):
         self.out_image = self.out_image / weight_sum
 
         if debug:
-            saveDebug(weight_sum,
+            saveDebug_1(weight_sum,
                       os.path.join(self.tempdir, "weightsum.jpeg"))
-            saveDebug(self.out_image,
+            saveDebug_1(self.out_image,
                       os.path.join(self.tempdir, "test.jpeg"))
 
     def save_image(self, outdir, outfile):
@@ -266,9 +274,9 @@ class Dundee(object):
                 (the real image and the weighting values)
         """
 
-        saveDebug(img[0],
+        saveImage(img[0],
                   os.path.join(self.tempdir, "test" +
                                repr(i) + ".jpeg"))
-        saveDebug(img[1],
+        saveDebug_1(img[1],
                   os.path.join(self.tempdir, "weighttest" +
                                repr(i) + ".jpeg"))
