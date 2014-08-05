@@ -56,6 +56,12 @@ def main():
     except ConfigParser.NoSectionError:
         nprocs = 1
 
+    try:
+        SatelliteData.projection_method =\
+            config.get("processing", 'projection')
+    except ConfigParser.NoSectionError:
+        SatelliteData.projection_method = 'pyresample'
+
     SatelliteData.outwidth = int(config.get("xplanet", 'width'))
     SatelliteData.outheight = int(config.get("xplanet", 'height'))
 

@@ -9,7 +9,6 @@ import requests
 import os
 import datetime
 import glob
-from pyresample import image, geometry
 from PIL import Image
 import sys
 
@@ -23,6 +22,7 @@ class SatelliteData(object):
     # size of the output image
     outwidth = 0
     outheight = 0
+    projection_method = "pyresample"
 
     def __init__(self, longitude, limit, rescale, base_url, suffix,
                  resolution):
@@ -157,6 +157,7 @@ class SatelliteData(object):
 
     @staticmethod
     def pc():
+        from pyresample import geometry
         """Create area defintion for world map in Plate Carree projection"""
         proj_dict = {'proj': 'eqc'}
         area_extent = (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
@@ -167,7 +168,10 @@ class SatelliteData(object):
         return pc
 
     def project(self, q=None):
-        return self.project_cartopy(q)
+        if SatelliteData.projection_method == "pyresample":
+            return self.project_pyresample(q)
+        else:
+            return self.project_cartopy(q)
 
     def project_cartopy(self, q=None):
         """
@@ -205,20 +209,13 @@ class SatelliteData(object):
                   vmin=0, vmax=255,
                   cmap=cm.Greys_r,  # @UndefinedVariable
                   )
-
-        if False:
-            ax.gridlines(draw_labels=False, axes=0, linewidth=10)
-            ax.add_feature(cfeature.OCEAN, facecolor='aqua', alpha='0.1')
-            ax.add_feature(cfeature.BORDERS, alpha='0.2', linewidth="20")
-            ax.coastlines(resolution='50m', color='black', linewidth="20")
-
         fig.canvas.draw()
-#        plt.show()
+
         w, h = fig.canvas.get_width_height()
         buf = np.fromstring(fig.canvas.tostring_rgb(),
                             dtype=np.uint8).reshape(h, w, 3)
 
-        dataResampledImage = buf[:, :, 0]
+        dataResampledImage = self.rescale(buf[:, :, 0])
 
         # create fantasy polar clouds by mirroring high latitude data
         polar_height = int(95.0 / 1024.0 * SatelliteData.outheight)
@@ -262,6 +259,8 @@ class SatelliteData(object):
                 the reprojected image to. If not set then return
                 image
         """
+
+        from pyresample import image, geometry
 
         img = Image.open(self.filename).convert("L")
         self.data = self.cut_borders(np.array(img))

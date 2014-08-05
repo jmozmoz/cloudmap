@@ -28,16 +28,57 @@ def ID(b):
     return b
 
 
-def saveDebug_1(buf, filename):
-    """Save satellite image"""
-    new_image = np.array(255.0 * buf / np.max(buf),
-                         'uint8')
-    img = Image.fromarray(new_image).convert('RGB')
-    img.save(filename)
-
-
 def saveDebug(weight_sum, filename):
-    """Save image for debugging onto map with grid and coastlines"""
+    """
+    Save image for debugging onto map with grid and coastlines
+    """
+    if SatelliteData.projection_method == "pyresample":
+        saveDebug_pyresample(weight_sum, filename)
+    else:
+        saveDebug_cartopy(weight_sum, filename)
+
+
+def saveDebug_cartopy(weight_sum, filename):
+    """
+    Save image for debugging onto map with grid and coastlines using
+    cartopy
+    """
+    import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import matplotlib.cm as cm
+
+    width = SatelliteData.outwidth
+    height = SatelliteData.outheight
+
+    fig = plt.figure(frameon=False, dpi=1, figsize=(width, height))
+    ax = plt.axes([0., 0., 1., 1.], projection=ccrs.PlateCarree())
+    fig.add_axes(ax)
+    ax.set_global()
+    ax.set_axis_off()
+
+    weight_sum = weight_sum / np.max(weight_sum) * 255.0
+
+    ax.imshow(weight_sum, origin='upper',
+              vmin=0, vmax=255,
+              extent=(-180, 180, -90, 90),
+              cmap=cm.Greys_r,  # @UndefinedVariable
+              )
+
+    ax.gridlines(draw_labels=False, axes=0, linewidth=10)
+#    ax.add_feature(cfeature.OCEAN, facecolor='aqua', alpha='0.1')
+    ax.add_feature(cfeature.BORDERS, alpha='0.2', linewidth="20")
+    ax.coastlines(resolution='50m', color='black', linewidth="20")
+
+    fig.canvas.draw()
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=1)
+
+
+def saveDebug_pyresample(weight_sum, filename):
+    """
+    Save image for debugging onto map with grid and coastlines using
+    pyresample
+    """
 
     import matplotlib
     matplotlib.use('AGG', warn=False)
@@ -238,9 +279,9 @@ class Dundee(object):
         self.out_image = self.out_image / weight_sum
 
         if debug:
-            saveDebug_1(weight_sum,
+            saveDebug(weight_sum,
                       os.path.join(self.tempdir, "weightsum.jpeg"))
-            saveDebug_1(self.out_image,
+            saveDebug(self.out_image,
                       os.path.join(self.tempdir, "test.jpeg"))
 
     def save_image(self, outdir, outfile):
@@ -274,9 +315,9 @@ class Dundee(object):
                 (the real image and the weighting values)
         """
 
-        saveImage(img[0],
+        saveDebug(img[0],
                   os.path.join(self.tempdir, "test" +
                                repr(i) + ".jpeg"))
-        saveDebug_1(img[1],
+        saveDebug(img[1],
                   os.path.join(self.tempdir, "weighttest" +
                                repr(i) + ".jpeg"))
