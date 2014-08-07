@@ -210,6 +210,9 @@ class Dundee(object):
             * purge:
                 Should all old satellite images be purged
         """
+
+        mkdir_p(self.tempdir)
+
         latest_download = 0
         for satellite in self.satellite_list:
             if purge:
@@ -229,8 +232,6 @@ class Dundee(object):
                 Should images created during the image processing be saved
         """
 
-        mkdir_p(self.tempdir)
-
         self.out_image = np.zeros(shape=(SatelliteData.outheight,
                                          SatelliteData.outwidth))
 
@@ -240,6 +241,11 @@ class Dundee(object):
         if self.nprocs == 1:
             i = 1
             for satellite in self.satellite_list:
+                # put class variables into object variables to get it to
+                # work with multiprocessing
+                satellite.outwidth = SatelliteData.outwidth
+                satellite.outheight = SatelliteData.outheight
+                satellite.projection_method = SatelliteData.projection_method
                 img = satellite.project()
                 if debug:
                     self.imageDebug(i, img)
@@ -250,6 +256,11 @@ class Dundee(object):
             from multiprocessing import Process, Queue
             pqs = []
             for satellite in self.satellite_list:
+                # put class variables into object variables to get it to
+                # work with multiprocessing
+                satellite.outwidth = SatelliteData.outwidth
+                satellite.outheight = SatelliteData.outheight
+                satellite.projection_method = SatelliteData.projection_method
                 q = Queue()
                 p = Process(target=satellite.project, args=(q,))
                 pqs.append((p, q))

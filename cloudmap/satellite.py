@@ -66,6 +66,9 @@ class SatelliteData(object):
         self.base_url = "http://www.sat.dundee.ac.uk/xrit/" + base_url
         self.suffix = suffix + resfile + ".jpeg"
         self.filemodtime = 0
+        self.outwidth = 0
+        self.outheight = 0
+        self.projection_method = "pyresample"
 
     def login(self, username, password):
         """
@@ -168,7 +171,7 @@ class SatelliteData(object):
         return pc
 
     def project(self, q=None):
-        if SatelliteData.projection_method == "pyresample":
+        if self.projection_method == "pyresample":
             return self.project_pyresample(q)
         else:
             return self.project_cartopy(q)
@@ -192,8 +195,8 @@ class SatelliteData(object):
         img = Image.open(self.filename).convert("L")
         self.data = self.cut_borders(np.array(img))
 
-        width = SatelliteData.outwidth
-        height = SatelliteData.outheight
+        width = self.outwidth
+        height = self.outheight
 
         fig = plt.figure(frameon=False, dpi=1, figsize=(width, height))
 
@@ -218,16 +221,15 @@ class SatelliteData(object):
         dataResampledImage = self.rescale(buf[:, :, 0])
 
         # create fantasy polar clouds by mirroring high latitude data
-        polar_height = int(95.0 / 1024.0 * SatelliteData.outheight)
+        polar_height = int(95.0 / 1024.0 * self.outheight)
         north_pole_indices = range(0, polar_height)
         north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
         dataResampledImage[north_pole_indices, :] =\
             dataResampledImage[north_pole_copy_indices, :]
-        south_pole_indices = range(SatelliteData.outheight - polar_height,
-                                   SatelliteData.outheight)
-        south_pole_copy_indices = range(SatelliteData.outheight - polar_height,
-                                        SatelliteData.outheight -
-                                        2 * polar_height,
+        south_pole_indices = range(self.outheight - polar_height,
+                                   self.outheight)
+        south_pole_copy_indices = range(self.outheight - polar_height,
+                                        self.outheight - 2 * polar_height,
                                         -1)
         dataResampledImage[south_pole_indices, :] = \
             dataResampledImage[south_pole_copy_indices, :]
@@ -280,12 +282,16 @@ class SatelliteData(object):
 
 #         msg_con_nn = image.ImageContainerNearest(data, area,
 #                                                  radius_of_influence=50000)
+        # make sure class variables are set for pc() class method in
+        # parallel processing
+        SatelliteData.outheight = self.outheight
+        SatelliteData.outwidth = self.outwidth
 
         dataResampled = dataIC.resample(SatelliteData.pc())
         dataResampledImage = self.rescale(dataResampled.image_data)
 
         # create fantasy polar clouds by mirroring high latitude data
-        polar_height = int(95.0 / 1024.0 * SatelliteData.outheight)
+        polar_height = int(95.0 / 1024.0 * self.outheight)
         north_pole_indices = range(0, polar_height)
         north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
         dataResampledImage[north_pole_indices, :] =\

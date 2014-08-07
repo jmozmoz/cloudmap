@@ -62,6 +62,12 @@ def main():
     except ConfigParser.NoSectionError:
         SatelliteData.projection_method = 'pyresample'
 
+    if SatelliteData.projection_method not in ['cartopy', 'pyresample']:
+        print("Incorrect projection library setting:",
+              SatelliteData.projection_method)
+        print("Use either pyresample or cartopy")
+        sys.exit(1)
+
     SatelliteData.outwidth = int(config.get("xplanet", 'width'))
     SatelliteData.outheight = int(config.get("xplanet", 'height'))
 
