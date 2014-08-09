@@ -187,10 +187,8 @@ class SatelliteData(object):
                 the reprojected image to. If not set then return
                 image
         """
-        import matplotlib.pyplot as plt
         import cartopy.crs as ccrs
-        import matplotlib.cm as cm
-        import cartopy.feature as cfeature
+        from cartopy.img_transform import warp_array
 
         img = Image.open(self.filename).convert("L")
         self.data = self.cut_borders(np.array(img))
@@ -198,27 +196,16 @@ class SatelliteData(object):
         width = self.outwidth
         height = self.outheight
 
-        fig = plt.figure(frameon=False, dpi=1, figsize=(width, height))
+        buf, _extent = \
+            warp_array(self.data,
+                       source_proj=ccrs.Geostationary(
+                           central_longitude=self.longitude,
+                           satellite_height=35785831.0
+                       ),
+                       target_proj=ccrs.PlateCarree(),
+                       target_res=(width, height))
 
-        ax = plt.axes([0., 0., 1., 1.], projection=ccrs.PlateCarree())
-        fig.add_axes(ax)
-        ax.set_global()
-        ax.set_axis_off()
-
-        ax.imshow(self.data, origin='upper',
-                  transform=ccrs.Geostationary(central_longitude=self.longitude,
-                                               satellite_height=35785831.0
-                                               ),
-                  vmin=0, vmax=255,
-                  cmap=cm.Greys_r,  # @UndefinedVariable
-                  )
-        fig.canvas.draw()
-
-        w, h = fig.canvas.get_width_height()
-        buf = np.fromstring(fig.canvas.tostring_rgb(),
-                            dtype=np.uint8).reshape(h, w, 3)
-
-        dataResampledImage = self.rescale(buf[:, :, 0])
+        dataResampledImage = self.rescale(buf.data)
 
         # create fantasy polar clouds by mirroring high latitude data
         polar_height = int(95.0 / 1024.0 * self.outheight)
@@ -234,17 +221,17 @@ class SatelliteData(object):
         dataResampledImage[south_pole_indices, :] = \
             dataResampledImage[south_pole_copy_indices, :]
 
-        width = 55
-        weight = np.array([max((width -
+        weight_width = 55
+        weight = np.array([max((weight_width -
                                 min([abs(self.longitude - x),
                                     abs(self.longitude - x + 360),
                                     abs(self.longitude - x - 360)])) / 180,
                                1e-7)
                            for x in np.linspace(-180,
                                                 180,
-                                                w)])
+                                                width)])
         result = np.array([dataResampledImage,
-                          np.tile(weight, (h, 1))])
+                          np.tile(weight, (height, 1))])
         if q:
             q.put(result)
         else:
