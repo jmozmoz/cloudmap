@@ -31,6 +31,8 @@ Set your login information in the configuration file (default name for UNIX-like
 
   [processing]
   nprocs = 1
+  # use either pyresample or cartopy
+  projection = pyresample
 
 If the configuration file already exists, a new version is copied to ``CreateCloudMap.ini.new`` to not overwrite the login data.
 The old config file should work after an update, because default values are used for
@@ -53,6 +55,15 @@ used to draw the current cloud map.
 satellite images. If this number is larger than 1 the multiprocessing library
 will be used to create separate processes communicating sending back their
 results by queues.
+
+``projection`` specifies the Python library used for projecting the geostationary
+images onto a flat map. Possible values are ``pyresample`` and ``cartopy``.
+``pyresample`` is the standard value and this library is set as dependency, so
+it is installed during the installation of ``CreateCloudMap`` (if pip is used to
+install it). If ``cartopy`` is used, this library must be installed manually.
+``cartopy`` is (currently much) slower than ``pyresmple`` but supports Python 3.x
+while ``pyresample`` currently does not support Python 3.x.
+
 
 To see all command line options of the script use ``--help``::
 
