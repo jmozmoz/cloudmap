@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from StringIO import StringIO
+from io import StringIO, BytesIO
 import numpy as np
 import requests
 import os
@@ -142,12 +142,12 @@ class SatelliteData(object):
             return False
 
     def download_image(self):
-        """Download the image if it has not been donwloaded before"""
+        """Download the image if it has not been downloaded before"""
         if os.path.isfile(self.filename):
             self.filemodtime = os.path.getmtime(self.filename)
             return
         r = requests.get(self.url, auth=(self.username, self.password))
-        i = Image.open(StringIO(r.content))
+        i = Image.open(BytesIO(r.content))
         i.save(self.filename)
         self.filemodtime = os.path.getmtime(self.filename)
 
@@ -206,7 +206,17 @@ class SatelliteData(object):
                        target_res=(width, height))
 
         dataResampledImage = self.rescale(buf.data)
+        dataResampledImage = self.polar_clouds(dataResampledImage)
+        weight = self.get_weight()
 
+        result = np.array([dataResampledImage,
+                          np.tile(weight, (height, 1))])
+        if q:
+            q.put(result)
+        else:
+            return result
+
+    def polar_clouds(self, dataResampledImage):
         # create fantasy polar clouds by mirroring high latitude data
         polar_height = int(95.0 / 1024.0 * self.outheight)
         north_pole_indices = range(0, polar_height)
@@ -220,7 +230,10 @@ class SatelliteData(object):
                                         -1)
         dataResampledImage[south_pole_indices, :] = \
             dataResampledImage[south_pole_copy_indices, :]
+        return dataResampledImage
 
+    def get_weight(self):
+        """Get weighting function for satellite image for overlaying"""
         weight_width = 55
         weight = np.array([max((weight_width -
                                 min([abs(self.longitude - x),
@@ -229,13 +242,8 @@ class SatelliteData(object):
                                1e-7)
                            for x in np.linspace(-180,
                                                 180,
-                                                width)])
-        result = np.array([dataResampledImage,
-                          np.tile(weight, (height, 1))])
-        if q:
-            q.put(result)
-        else:
-            return result
+                                                self.outwidth)])
+        return weight
 
     def project_pyresample(self, q=None):
         """
@@ -267,40 +275,14 @@ class SatelliteData(object):
                                        y_size, area_extent)
         dataIC = image.ImageContainerQuick(self.data, area)
 
-#         msg_con_nn = image.ImageContainerNearest(data, area,
-#                                                  radius_of_influence=50000)
-        # make sure class variables are set for pc() class method in
-        # parallel processing
         SatelliteData.outheight = self.outheight
         SatelliteData.outwidth = self.outwidth
 
         dataResampled = dataIC.resample(SatelliteData.pc())
         dataResampledImage = self.rescale(dataResampled.image_data)
+        dataResampledImage = self.polar_clouds(dataResampledImage)
+        weight = self.get_weight()
 
-        # create fantasy polar clouds by mirroring high latitude data
-        polar_height = int(95.0 / 1024.0 * self.outheight)
-        north_pole_indices = range(0, polar_height)
-        north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
-        dataResampledImage[north_pole_indices, :] =\
-            dataResampledImage[north_pole_copy_indices, :]
-        south_pole_indices = range(SatelliteData.outheight - polar_height,
-                                   SatelliteData.outheight)
-        south_pole_copy_indices = range(SatelliteData.outheight - polar_height,
-                                        SatelliteData.outheight -
-                                        2 * polar_height,
-                                        -1)
-        dataResampledImage[south_pole_indices, :] = \
-            dataResampledImage[south_pole_copy_indices, :]
-
-        width = 55
-        weight = np.array([max((width -
-                                min([abs(self.longitude - x),
-                                    abs(self.longitude - x + 360),
-                                    abs(self.longitude - x - 360)])) / 180,
-                               1e-7)
-                           for x in np.linspace(-180,
-                                                180,
-                                                dataResampled.shape[1])])
         result = np.array([dataResampledImage,
                           np.tile(weight, (dataResampled.shape[0], 1))])
         if q:

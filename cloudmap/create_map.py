@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 import argparse
-import ConfigParser
+import configparser
 import os
 import sys
 import time
@@ -32,7 +32,7 @@ def main():
     parser.add_argument('-V', '--version', action='version',
                     version=__version__)
     args = parser.parse_args()
-    config = ConfigParser.SafeConfigParser(
+    config = configparser.SafeConfigParser(
                                        {'width': '2048',
                                         'height': '1024',
                                         'destinationfile': 'clouds_2048.jpg',
@@ -53,13 +53,13 @@ def main():
 
     try:
         nprocs = int(config.get("processing", 'nprocs'))
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         nprocs = 1
 
     try:
         SatelliteData.projection_method =\
             config.get("processing", 'projection')
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         SatelliteData.projection_method = 'pyresample'
 
     if SatelliteData.projection_method not in ['cartopy', 'pyresample']:

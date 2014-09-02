@@ -1,5 +1,5 @@
 from __future__ import print_function
-from __future__ import unicode_literals
+# from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 from setuptools import setup
@@ -54,7 +54,7 @@ cmdclass['install'] = Install
 setup(
     name='CreateCloudMap',
     version=versioneer.get_version(),
-    packages=[b'cloudmap', ],
+    packages=['cloudmap', ],
     cmdclass=cmdclass,
     license='GPL3',
     description='Create a cloud map for xplanet using satellite images ' + \
@@ -64,7 +64,7 @@ setup(
     author_email='Joachim.Herb@gmx.de',
     url='https://github.com/jmozmoz/cloudmap',
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
-                      'ConfigParser', 'pillowfight', 'setuptools>=0.7.2'],
+                      'pillowfight', 'setuptools>=0.7.2'],
     entry_points={
         'console_scripts': [
             'create_map = cloudmap.create_map:main',
