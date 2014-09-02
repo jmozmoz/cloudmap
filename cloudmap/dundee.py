@@ -6,14 +6,11 @@ from __future__ import division
 from .mkdir import mkdir_p
 from .satellite import SatelliteData
 
-#from .__init__ import mkdir_p, SatelliteData
-
 import sys
 import datetime
 import numpy as np
 import os
 from PIL import Image
-import time
 
 
 def curve(b):
@@ -107,6 +104,11 @@ def saveImage(new_image, filename):
     img.save(filename)
 
 
+def do_project(satellite):
+    """Wrap the project method to use multiprocessing pool"""
+    return satellite.project()
+
+
 class Dundee(object):
 
     """
@@ -135,47 +137,47 @@ class Dundee(object):
         self.nprocs = nprocs
 
         self.satellite_list = (
-              SatelliteData(longitude=145.0,
-                            limit={'left': 9, 'right': 680,
-                                   'top': 12, 'bottom': 683},
-                            rescale=curve,
-                            base_url="145.0E/MTSAT/",
-                            suffix="_MTSAT2_4_",
-                            resolution=resolution
-                            ),
-              SatelliteData(longitude=57.0,
-                            limit={'left': 13, 'right': 612,
-                                   'top': 13, 'bottom': 612},
-                            rescale=ID,
-                            base_url="057.0E/MET/",
-                            suffix="_MET7_2_",
-                            resolution=resolution
-                            ),
-              SatelliteData(longitude=0.0,
-                            limit={'left': 16, 'right': 913,
-                                   'top': 16, 'bottom': 913},
-                            rescale=ID,
-                            base_url="000.0E/MSG/",
-                            suffix="_MSG3_9_",
-                            resolution=resolution
-                            ),
-              SatelliteData(longitude=-75.0,
-                            limit={'left': 16, 'right': 688,
-                                   'top': 70, 'bottom': 744},
-                            rescale=ID,
-                            base_url="075.0W/GOES/",
-                            suffix="_GOES13_4_",
-                            resolution=resolution
-                            ),
-              SatelliteData(longitude=-135.0,
-                            limit={'left': 16, 'right': 688,
-                                   'top': 70, 'bottom': 744},
-                            rescale=ID,
-                            base_url="135.0W/GOES/",
-                            suffix="_GOES15_4_",
-                            resolution=resolution
-                            ),
-              )
+            SatelliteData(longitude=145.0,
+                          limit={'left': 9, 'right': 680,
+                                 'top': 12, 'bottom': 683},
+                          rescale=curve,
+                          base_url="145.0E/MTSAT/",
+                          suffix="_MTSAT2_4_",
+                          resolution=resolution
+                          ),
+            SatelliteData(longitude=57.0,
+                          limit={'left': 13, 'right': 612,
+                                 'top': 13, 'bottom': 612},
+                          rescale=ID,
+                          base_url="057.0E/MET/",
+                          suffix="_MET7_2_",
+                          resolution=resolution
+                          ),
+            SatelliteData(longitude=0.0,
+                          limit={'left': 16, 'right': 913,
+                                 'top': 16, 'bottom': 913},
+                          rescale=ID,
+                          base_url="000.0E/MSG/",
+                          suffix="_MSG3_9_",
+                          resolution=resolution
+                          ),
+            SatelliteData(longitude=-75.0,
+                          limit={'left': 16, 'right': 688,
+                                 'top': 70, 'bottom': 744},
+                          rescale=ID,
+                          base_url="075.0W/GOES/",
+                          suffix="_GOES13_4_",
+                          resolution=resolution
+                          ),
+            SatelliteData(longitude=-135.0,
+                          limit={'left': 16, 'right': 688,
+                                 'top': 70, 'bottom': 744},
+                          rescale=ID,
+                          base_url="135.0W/GOES/",
+                          suffix="_GOES15_4_",
+                          resolution=resolution
+                          ),
+        )
 
     def find_latest(self):
         """
@@ -253,39 +255,22 @@ class Dundee(object):
                 weight_sum = weight_sum + img[1]
                 self.out_image = self.out_image + (img[0] * img[1])
         else:
-            from multiprocessing import Process, Queue
-            pqs = []
+            from multiprocessing import Pool
+            pool = Pool(processes=self.nprocs)
+
             for satellite in self.satellite_list:
-                # put class variables into object variables to get it to
-                # work with multiprocessing
                 satellite.outwidth = SatelliteData.outwidth
                 satellite.outheight = SatelliteData.outheight
                 satellite.projection_method = SatelliteData.projection_method
-                q = Queue()
-                p = Process(target=satellite.project, args=(q,))
-                pqs.append((p, q))
 
-            running = []
+            images = pool.map(do_project, self.satellite_list)
             i = 1
-            j = 1
-            while True:
-                if len(running) < self.nprocs and len(pqs) > 0:
-                    (p, q) = pqs.pop()
-                    running.append((p, q))
-                    j += 1
-                    p.start()
-                for (p, q) in running:
-                    if not q.empty():
-                        img = q.get()
-                        if debug:
-                            self.imageDebug(i, img)
-                        weight_sum = weight_sum + img[1]
-                        self.out_image = self.out_image + (img[0] * img[1])
-                        running.remove((p, q))
-                        i += 1
-                if len(running) == 0 and len(pqs) == 0:
-                    break
-                time.sleep(0.01)
+            for img in images:
+                if debug:
+                    self.imageDebug(i, img)
+                weight_sum = weight_sum + img[1]
+                self.out_image = self.out_image + (img[0] * img[1])
+                i += 1
 
         self.out_image = self.out_image / weight_sum
 
