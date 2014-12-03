@@ -53,13 +53,13 @@ def main():
 
     try:
         nprocs = int(config.get("processing", 'nprocs'))
-    except configparser.NoSectionError:
+    except (configparser.NoSectionError, configparser.NoOptionError):
         nprocs = 1
 
     try:
         SatelliteData.projection_method =\
             config.get("processing", 'projection')
-    except configparser.NoSectionError:
+    except (configparser.NoSectionError, configparser.NoOptionError):
         SatelliteData.projection_method = 'pyresample'
 
     if SatelliteData.projection_method not in ['cartopy', 'pyresample']:
