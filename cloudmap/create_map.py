@@ -33,13 +33,15 @@ def main():
                     version=__version__)
     args = parser.parse_args()
     config = configparser.SafeConfigParser(
-                                       {'width': '2048',
-                                        'height': '1024',
-                                        'destinationfile': 'clouds_2048.jpg',
-                                        'resolution': 'medium',
-                                        'purge': 'false',
-                                        'nprocs': '1'}
-                                       )
+        {'width': '2048',
+         'height': '1024',
+         'destinationfile': 'clouds_2048.jpg',
+         'resolution': 'medium',
+         'purge': 'false',
+         'nprocs': '1',
+         'projection': 'pyresample'
+         }
+        )
     config.read([args.conf_file])
 
     username = config.get("Download", 'username')
@@ -87,7 +89,7 @@ def main():
         os.path.isfile(os.path.join(outdir, outfile)) and
         (os.path.getmtime(os.path.join(outdir, outfile))
          > latest_download)
-        ):
+    ):
         sys.exit(0)
 
     satellite_list.overlay(args.debug)
