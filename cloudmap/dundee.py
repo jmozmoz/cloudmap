@@ -158,7 +158,7 @@ class Dundee(object):
                                  'top': 16, 'bottom': 913},
                           rescale=ID,
                           base_url="000.0E/MSG/",
-                          suffix="_MSG1_9_",
+                          suffix="_MSG3_9_",
                           resolution=resolution
                           ),
             SatelliteData(longitude=-75.0,
