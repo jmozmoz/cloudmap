@@ -282,7 +282,7 @@ def main():
           SatelliteData(0.0, 5433878.562, 0,
                         SatelliteData.ID,
                         "http://www.sat.dundee.ac.uk/xrit/000.0E/MSG/",
-                        "_MSG1_9_" + resfile + ".jpeg"
+                        "_MSG3_9_" + resfile + ".jpeg"
                         ),
           SatelliteData(-75.0, 5433878.562, 0,
                         SatelliteData.ID,
