@@ -57,7 +57,7 @@ setup(
     packages=['cloudmap', ],
     cmdclass=cmdclass,
     license='GPL3',
-    description='Create a cloud map for xplanet using satellite images ' + \
+    description='Create a cloud map for xplanet using satellite images ' +
                 'from the Dundee Satellite Receiving Station',
     long_description=open('README.rst').read(),
     author='Joachim Herb',
@@ -65,25 +65,32 @@ setup(
     url='https://github.com/jmozmoz/cloudmap',
     install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
                       'pillowfight', 'setuptools>=0.7.2'],
+    extras_require={
+        'cartopy':  ["cartopy"],
+        'debug_pyresample': ["basemap", "matplotlib"],
+        'debug_cartopy': ["matplotlib"]
+    },
     entry_points={
         'console_scripts': [
             'create_map = cloudmap.create_map:main',
         ]
     },
     classifiers=[
-         "Programming Language :: Python",
-         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-         "Operating System :: OS Independent",
-         "Development Status :: 4 - Beta",
-         "Environment :: Console",
-         "Intended Audience :: End Users/Desktop",
-         "Topic :: Desktop Environment",
-         "Topic :: Multimedia :: Graphics",
-         "Topic :: Scientific/Engineering :: Atmospheric Science",
-         "Topic :: Scientific/Engineering :: GIS",
-         "Topic :: Scientific/Engineering :: Visualization",
-         "Topic :: Utilities",
-         ],
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: End Users/Desktop",
+        "Topic :: Desktop Environment",
+        "Topic :: Multimedia :: Graphics",
+        "Topic :: Scientific/Engineering :: Atmospheric Science",
+        "Topic :: Scientific/Engineering :: GIS",
+        "Topic :: Scientific/Engineering :: Visualization",
+        "Topic :: Utilities",
+    ],
     scripts=['winpostinstall.py'],
     options={
         "bdist_wininst": {

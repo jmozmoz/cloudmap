@@ -19,7 +19,7 @@ Set your login information in the configuration file (default name for UNIX-like
   username = user
   password = secret
   tempdir = images
-   # Use one of the following for resolution: low, medium, high
+  # Use one of the following for resolution: low, medium, high
   resolution = medium
   purge = false
 
@@ -39,8 +39,7 @@ The old config file should work after an update, because default values are used
 newly introduced options.
 
 ``tempdir`` specifies the directory where the downloaded images (and if enabled by the command line
-switch ``--debug`` or ``-d``) intermediate debug images are stored. For debug outputs to work, you need
-to (manually) install matplotlib and Basemap. ``destinationdir`` specifies the directory where
+switch ``--debug`` or ``-d``) intermediate debug images are stored. ``destinationdir`` specifies the directory where
 the output ``destinationfile`` is saved.
 
 ``resolution`` can be set to ``low``, ``medium`` or ``high`` to determine the resolution
@@ -61,19 +60,46 @@ images onto a flat map. Possible values are ``pyresample`` and ``cartopy``.
 ``pyresample`` is the standard value and this library is set as dependency, so
 it is installed during the installation of ``CreateCloudMap`` (if pip is used to
 install it). If ``cartopy`` is used, this library must be installed manually.
-``cartopy`` is (currently much) slower than ``pyresmple`` but supports Python 3.x
-while ``pyresample`` currently does not support Python 3.x.
+``cartopy`` is (currently much) slower than ``pyresample``.
 
 
 To see all command line options of the script use ``--help``::
 
-	$ create_map --help
-	usage: create_map [-h] [-d] [-c FILE] [-f]
+  $ create_map --help
+  usage: create_map [-h] [-d] [-c FILE] [-f]
 
-	optional arguments:
-	  -h, --help            show this help message and exit
-	  -d, --debug           store intermediate results
-	  -c FILE, --conf_file FILE
-	                        Specify config file
-	  -f, --force           Force to recreate cloud map
+  optional arguments:
+    -h, --help            show this help message and exit
+    -d, --debug           store intermediate results
+    -c FILE, --conf_file FILE
+                          Specify config file
+    -f, --force           Force to recreate cloud map
 
+Dependencies
+............
+To automatically install ``cartopy`` use the following command line for pip::
+
+  pip install CreateCloudMap[cartopy]
+
+
+For the debug output to work with the ``pyresample`` projection the
+libraries matplotlib and basemap have to be installed. This can be done either
+manually or by giving the extra requirement option ``[debug_pyresample]``
+when using pip::
+
+  pip install CreateCloudMap[debug_pyresample]
+
+For the debug output to work with the ``cartopy`` projection the
+library matplotlib is necessary. It can be automatically installed by using
+pip::
+
+  pip install CreateCloudMap[cartopy,debug_cartopy]
+
+
+(So if no extra dependency is given the pyresample library will be installed
+(if it has not been already installed) and no debug output is possible)
+
+References
+..........
+A nice description of the concepts forming the basis of this program can be found
+at `this blog post <https://apollo.open-resource.org/mission:log:2014:06:17:new-fresh-global-cloudmap-distribution-service-xplanet>`_.
