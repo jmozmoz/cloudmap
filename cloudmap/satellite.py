@@ -170,22 +170,16 @@ class SatelliteData(object):
                                      proj_dict, x_size, y_size, area_extent)
         return pc
 
-    def project(self, q=None):
+    def project(self):
         if self.projection_method == "pyresample":
-            return self.project_pyresample(q)
+            return self.project_pyresample()
         else:
-            return self.project_cartopy(q)
+            return self.project_cartopy()
 
-    def project_cartopy(self, q=None):
+    def project_cartopy(self):
         """
         Reproject the satellite image on an equirectangular map using the
         cartopy library
-
-        Args:
-            * q:
-                Optional: Use the queue to send
-                the reprojected image to. If not set then return
-                image
         """
         import cartopy.crs as ccrs
         from cartopy.img_transform import warp_array
@@ -211,10 +205,7 @@ class SatelliteData(object):
 
         result = np.array([dataResampledImage,
                           np.tile(weight, (height, 1))])
-        if q:
-            q.put(result)
-        else:
-            return result
+        return result
 
     def polar_clouds(self, dataResampledImage):
         # create fantasy polar clouds by mirroring high latitude data
@@ -245,16 +236,10 @@ class SatelliteData(object):
                                                 self.outwidth)])
         return weight
 
-    def project_pyresample(self, q=None):
+    def project_pyresample(self):
         """
         Reproject the satellite image on an equirectangular map using the
         pyresample library
-
-        Args:
-            * q:
-                Optional: Use the queue to send
-                the reprojected image to. If not set then return
-                image
         """
 
         from pyresample import image, geometry
@@ -285,7 +270,4 @@ class SatelliteData(object):
 
         result = np.array([dataResampledImage,
                           np.tile(weight, (dataResampled.shape[0], 1))])
-        if q:
-            q.put(result)
-        else:
-            return result
+        return result
