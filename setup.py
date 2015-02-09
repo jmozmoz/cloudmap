@@ -7,6 +7,7 @@ from setuptools import setup
 from setuptools.command.install import install as _install
 import os
 import versioneer
+import sys
 
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'cloudmap/_version.py'
@@ -51,6 +52,14 @@ class Install(_install):
 cmdclass = versioneer.get_cmdclass()
 cmdclass['install'] = Install
 
+if sys.version_info >= (3, 2):
+    install_requires = ['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
+                        'pillowfight', 'setuptools>=0.7.2',
+                        'configparser==3.5.0b1']
+else:
+    install_requires = ['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
+                        'pillowfight', 'setuptools>=0.7.2', 'configparser']
+
 setup(
     name='CreateCloudMap',
     version=versioneer.get_version(),
@@ -63,8 +72,7 @@ setup(
     author='Joachim Herb',
     author_email='Joachim.Herb@gmx.de',
     url='https://github.com/jmozmoz/cloudmap',
-    install_requires=['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
-                      'pillowfight', 'setuptools>=0.7.2'],
+    install_requires=install_requires,
     extras_require={
         'cartopy':  ["cartopy"],
         'debug_pyresample': ["basemap", "matplotlib"],
