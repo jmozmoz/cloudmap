@@ -1,6 +1,12 @@
 CreateCloudMap
 ==============
 
+.. image:: https://img.shields.io/pypi/v/createcloudmap.svg
+    :target: https://pypi.python.org/pypi/createcloudmap
+
+.. image:: https://img.shields.io/pypi/dm/createcloudmap.svg
+        :target: https://pypi.python.org/pypi/createcloudmap
+
 Python script to create a cloud map for xplanet using satellite images from the
 `Dundee Satellite Receiving Station, Dundee University, UK <http://www.sat.dundee.ac.uk/>`_.
 This script can also be installed by pip from `pypi <https://pypi.python.org/pypi/CreateCloudMap>`_.
