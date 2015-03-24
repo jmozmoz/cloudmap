@@ -74,7 +74,7 @@ setup(
     url='https://github.com/jmozmoz/cloudmap',
     install_requires=install_requires,
     extras_require={
-        'cartopy':  ["cartopy"],
+        'cartopy':  ["cartopy", "shapely", "pyshp"],
         'debug_pyresample': ["basemap", "matplotlib"],
         'debug_cartopy': ["matplotlib"]
     },
@@ -86,7 +86,8 @@ setup(
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
         "Development Status :: 4 - Beta",
