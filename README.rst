@@ -1,13 +1,14 @@
 CreateCloudMap
 ==============
 
-.. image:: https://pypip.in/version/createcloudmap/badge.svg
+.. image:: https://img.shields.io/pypi/v/CreateCloudMap.svg
     :target: https://pypi.python.org/pypi/createcloudmap
 
-.. image:: https://pypip.in/py_versions/createcloudmap/badge.svg
-    :target: https://pypi.python.org/pypi/createcloudmap
+..
+  .. image:: https://pypip.in/py_versions/createcloudmap/badge.svg
+      :target: https://pypi.python.org/pypi/createcloudmap
 
-.. image:: https://pypip.in/download/createcloudmap/badge.svg
+.. image:: https://img.shields.io/pypi/dm/CreateCloudMap.svg
         :target: https://pypi.python.org/pypi/createcloudmap
 
 Python script to create a cloud map for xplanet using satellite images from the
