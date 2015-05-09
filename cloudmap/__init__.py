@@ -1,5 +1,6 @@
-from .satellite import SatelliteData
-from .dundee import Dundee
+from .geo import GeoSatelliteData
+from .polar import PolarSatelliteData
+from .satellites import Satellites
 from .mkdir import mkdir_p
 
 from ._version import get_versions

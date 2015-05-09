@@ -13,16 +13,11 @@ from PIL import Image
 import sys
 
 
-class SatelliteData(object):
+class GeoSatelliteData(object):
 
     """
     A class to download and process satellite image
     """
-
-    # size of the output image
-    outwidth = 0
-    outheight = 0
-    projection_method = "pyresample"
 
     def __init__(self, longitude, limit, rescale, base_url, suffix,
                  resolution):
@@ -158,18 +153,6 @@ class SatelliteData(object):
         l.update((x, y * self.resolution_mult) for x, y in self.limit.items())
         return data[l['top']:l['bottom'], l['left']:l['right']]
 
-    @staticmethod
-    def pc():
-        from pyresample import geometry
-        """Create area defintion for world map in Plate Carree projection"""
-        proj_dict = {'proj': 'eqc'}
-        area_extent = (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
-        x_size = SatelliteData.outwidth
-        y_size = SatelliteData.outheight
-        pc = geometry.AreaDefinition('pc', 'Plate Carree world map', 'pc',
-                                     proj_dict, x_size, y_size, area_extent)
-        return pc
-
     def project(self):
         if self.projection_method == "pyresample":
             return self.project_pyresample()
@@ -200,28 +183,11 @@ class SatelliteData(object):
                        target_res=(width, height))
 
         dataResampledImage = self.rescale(buf.data)
-        dataResampledImage = self.polar_clouds(dataResampledImage)
+#         dataResampledImage = self.polar_clouds(dataResampledImage)
         weight = self.get_weight()
 
-        result = np.array([dataResampledImage,
-                          np.tile(weight, (height, 1))])
+        result = np.array([dataResampledImage, weight])
         return result
-
-    def polar_clouds(self, dataResampledImage):
-        # create fantasy polar clouds by mirroring high latitude data
-        polar_height = int(95.0 / 1024.0 * self.outheight)
-        north_pole_indices = range(0, polar_height)
-        north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
-        dataResampledImage[north_pole_indices, :] =\
-            dataResampledImage[north_pole_copy_indices, :]
-        south_pole_indices = range(self.outheight - polar_height,
-                                   self.outheight)
-        south_pole_copy_indices = range(self.outheight - polar_height,
-                                        self.outheight - 2 * polar_height,
-                                        -1)
-        dataResampledImage[south_pole_indices, :] = \
-            dataResampledImage[south_pole_copy_indices, :]
-        return dataResampledImage
 
     def get_weight(self):
         """Get weighting function for satellite image for overlaying"""
@@ -234,6 +200,13 @@ class SatelliteData(object):
                            for x in np.linspace(-180,
                                                 180,
                                                 self.outwidth)])
+
+        weight = np.array([weight *
+                           max(1e-7,
+                               1 - 9/7 *
+                               abs(i - self.outheight/2)/self.outheight*2)**0.5
+                           for i in range(self.outheight)])
+
         return weight
 
     def project_pyresample(self):
@@ -243,6 +216,7 @@ class SatelliteData(object):
         """
 
         from pyresample import image, geometry
+        from .satellites import pc
 
         img = Image.open(self.filename).convert("L")
         self.data = self.cut_borders(np.array(img))
@@ -260,14 +234,13 @@ class SatelliteData(object):
                                        y_size, area_extent)
         dataIC = image.ImageContainerQuick(self.data, area)
 
-        SatelliteData.outheight = self.outheight
-        SatelliteData.outwidth = self.outwidth
-
-        dataResampled = dataIC.resample(SatelliteData.pc())
+        dataResampled = dataIC.resample(pc(self.outwidth,
+                                           self.outheight))
         dataResampledImage = self.rescale(dataResampled.image_data)
-        dataResampledImage = self.polar_clouds(dataResampledImage)
+#         dataResampledImage = self.polar_clouds(dataResampledImage)
         weight = self.get_weight()
 
-        result = np.array([dataResampledImage,
-                          np.tile(weight, (dataResampled.shape[0], 1))])
+        print("image max:", np.max(dataResampledImage))
+
+        result = np.array([dataResampledImage, weight])
         return result

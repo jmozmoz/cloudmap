@@ -10,13 +10,13 @@ import os
 import sys
 import time
 
-from .__init__ import Dundee, SatelliteData, __version__
+from .__init__ import Satellites, __version__
 
 
 def main():
     """
     Create world satellite image using the latest images from the
-    Dundee server
+    Satellites server
     """
 
     tic = time.clock()
@@ -26,11 +26,11 @@ def main():
     parser.add_argument("-c", "--conf_file", help="Specify config file",
                         metavar="FILE",
                         default=os.path.expanduser(
-                           "~/.CreateCloudMap/CreateCloudMap.ini"))
+                            "~/.CreateCloudMap/CreateCloudMap.ini"))
     parser.add_argument("-f", "--force", help="Force to recreate cloud map",
                         action="store_true")
     parser.add_argument('-V', '--version', action='version',
-                    version=__version__)
+                        version=__version__)
     args = parser.parse_args()
     config = configparser.SafeConfigParser(
         {'width': '2048',
@@ -59,22 +59,22 @@ def main():
         nprocs = 1
 
     try:
-        SatelliteData.projection_method =\
+        Satellites.projection_method =\
             config.get("processing", 'projection')
     except (configparser.NoSectionError, configparser.NoOptionError):
-        SatelliteData.projection_method = 'pyresample'
+        Satellites.projection_method = 'pyresample'
 
-    if SatelliteData.projection_method not in ['cartopy', 'pyresample']:
+    if Satellites.projection_method not in ['cartopy', 'pyresample']:
         print("Incorrect projection library setting:",
-              SatelliteData.projection_method)
+              Satellites.projection_method)
         print("Use either pyresample or cartopy")
         sys.exit(1)
 
-    SatelliteData.outwidth = int(config.get("xplanet", 'width'))
-    SatelliteData.outheight = int(config.get("xplanet", 'height'))
+    Satellites.outwidth = int(config.get("xplanet", 'width'))
+    Satellites.outheight = int(config.get("xplanet", 'height'))
 
-    satellite_list = Dundee(resolution, username, password,
-                            tempdir, nprocs)
+    satellite_list = Satellites(resolution, username, password,
+                                tempdir, nprocs)
     dt = satellite_list.find_latest()
 
     print("Download image date/time: ",

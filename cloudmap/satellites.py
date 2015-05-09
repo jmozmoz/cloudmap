@@ -4,7 +4,8 @@ from __future__ import absolute_import
 from __future__ import division
 
 from .mkdir import mkdir_p
-from .satellite import SatelliteData
+from .geo import GeoSatelliteData
+from .polar import PolarSatelliteData
 
 import sys
 import datetime
@@ -19,6 +20,12 @@ def curve(b):
     return np.minimum(b * 255.0 / 193.0, 255)
 
 
+def curve2(b):
+    """Rescale the brightness values used for MTSAT2 satellite"""
+
+    return np.minimum(b * 255.0 / 150.0, 255)
+
+
 def ID(b):
     """Identity function"""
 
@@ -29,7 +36,7 @@ def saveDebug(weight_sum, filename):
     """
     Save image for debugging onto map with grid and coastlines
     """
-    if SatelliteData.projection_method == "pyresample":
+    if Satellites.projection_method == "pyresample":
         saveDebug_pyresample(weight_sum, filename)
     else:
         saveDebug_cartopy(weight_sum, filename)
@@ -45,8 +52,8 @@ def saveDebug_cartopy(weight_sum, filename):
     import cartopy.feature as cfeature
     import matplotlib.cm as cm
 
-    width = SatelliteData.outwidth
-    height = SatelliteData.outheight
+    width = Satellites.outwidth
+    height = Satellites.outheight
 
     fig = plt.figure(frameon=False, dpi=1, figsize=(width, height))
     ax = plt.axes([0., 0., 1., 1.], projection=ccrs.PlateCarree())
@@ -85,7 +92,9 @@ def saveDebug_pyresample(weight_sum, filename):
 
     new_image = np.array(255.0 * weight_sum / np.max(weight_sum),
                          'uint8')
-    bmap = plot.area_def2basemap(SatelliteData.pc(), resolution='c')
+    bmap = plot.area_def2basemap(pc(Satellites.outwidth,
+                                    Satellites.outheight),
+                                 resolution='c')
     bmap.drawcoastlines(linewidth=0.2, color='red')
     bmap.drawmeridians(np.arange(-180, 180, 45), linewidth=0.2, color='red')
     bmap.drawparallels(np.arange(-90, 90, 10), linewidth=0.2, color='red')
@@ -93,6 +102,10 @@ def saveDebug_pyresample(weight_sum, filename):
                 cmap=cm.Greys_r)  # @UndefinedVariable
 #    plt.show()
 
+    i = datetime.datetime.now()
+    plt.text(0, -50, "%s" % i.isoformat(),
+             color='green', size=15,
+             horizontalalignment='center')
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=400)
     plt.close()
 
@@ -109,11 +122,26 @@ def do_project(satellite):
     return satellite.project()
 
 
-class Dundee(object):
+def pc(x_size, y_size):
+    from pyresample import geometry
+    """Create area defintion for world map in Plate Carree projection"""
+    proj_dict = {'proj': 'eqc'}
+    area_extent = (-20037508.34, -10018754.17, 20037508.34, 10018754.17)
+    pc = geometry.AreaDefinition('pc', 'Plate Carree world map', 'pc',
+                                 proj_dict, x_size, y_size, area_extent)
+    return pc
+
+
+class Satellites(object):
 
     """
-    Class to download and process all images from the Dundee server
+    Class to download and process all images from the Satellites server
     """
+
+    # size of the output image
+    outwidth = 0
+    outheight = 0
+    projection_method = "pyresample"
 
     def __init__(self, resolution, username, password, tempdir, nprocs=1):
         """
@@ -121,9 +149,9 @@ class Dundee(object):
             * resolution:
                 resolution of the image to be downloaded (low, medium, high)
             * username:
-                username of Dundee accoun
+                username of Satellites account
             * password:
-                password of Dundee accoun
+                password of Satellites account
             * tempdir:
                 directory to store downloaded images (will be created
                 if necessary)
@@ -137,46 +165,86 @@ class Dundee(object):
         self.nprocs = nprocs
 
         self.satellite_list = (
-            SatelliteData(longitude=145.0,
-                          limit={'left': 9, 'right': 680,
-                                 'top': 12, 'bottom': 683},
-                          rescale=curve,
-                          base_url="145.0E/MTSAT/",
-                          suffix="_MTSAT2_4_",
-                          resolution=resolution
-                          ),
-            SatelliteData(longitude=57.0,
-                          limit={'left': 13, 'right': 612,
-                                 'top': 13, 'bottom': 612},
-                          rescale=ID,
-                          base_url="057.0E/MET/",
-                          suffix="_MET7_2_",
-                          resolution=resolution
-                          ),
-            SatelliteData(longitude=0.0,
-                          limit={'left': 16, 'right': 913,
-                                 'top': 16, 'bottom': 913},
-                          rescale=ID,
-                          base_url="000.0E/MSG/",
-                          suffix="_MSG3_9_",
-                          resolution=resolution
-                          ),
-            SatelliteData(longitude=-75.0,
-                          limit={'left': 16, 'right': 688,
-                                 'top': 70, 'bottom': 744},
-                          rescale=ID,
-                          base_url="075.0W/GOES/",
-                          suffix="_GOES13_4_",
-                          resolution=resolution
-                          ),
-            SatelliteData(longitude=-135.0,
-                          limit={'left': 16, 'right': 688,
-                                 'top': 70, 'bottom': 744},
-                          rescale=ID,
-                          base_url="135.0W/GOES/",
-                          suffix="_GOES15_4_",
-                          resolution=resolution
-                          ),
+            PolarSatelliteData(longitude=65.0,
+                               latitude=90,
+                               extent=(-6500e3, -11150e3, 10000e3, 400e3),
+                               base_url="145.0E/MTSAT/",
+                               rescale=curve2,
+                               weight_width=75,
+                               suffix="_ir_ICAO-G_bw"
+                               ),
+            PolarSatelliteData(longitude=-45.0,
+                               latitude=90,
+                               extent=(-7000e3, -10300e3, 7900e3, 1700e3),
+                               base_url="145.0E/MTSAT/",
+                               rescale=curve2,
+                               weight_width=75,
+                               suffix="_ir_ICAO-H_bw"
+                               ),
+            PolarSatelliteData(longitude=-155.0,
+                               latitude=90,
+                               extent=(-9000e3, -11200e3, 6900e3, 500e3),
+                               base_url="145.0E/MTSAT/",
+                               rescale=curve2,
+                               weight_width=75,
+                               suffix="_ir_ICAO-I_bw"
+                               ),
+            PolarSatelliteData(longitude=-142.0,
+                               latitude=-90,
+                               extent=(-7200e3, -2800e3, 8500e3, 9700e3),
+                               base_url="145.0E/MTSAT/",
+                               rescale=curve2,
+                               weight_width=180,
+                               suffix="_ir_ICAO-J_bw"
+                               ),
+            PolarSatelliteData(longitude=97.0,
+                               latitude=-90,
+                               extent=(-10500e3, -650e3, 7700e3, 12000e3),
+                               base_url="145.0E/MTSAT/",
+                               rescale=curve2,
+                               weight_width=90,
+                               suffix="_ir_ICAO-K_bw"
+                               ),
+            GeoSatelliteData(longitude=145.0,
+                             limit={'left': 9, 'right': 680,
+                                    'top': 12, 'bottom': 683},
+                             rescale=curve,
+                             base_url="145.0E/MTSAT/",
+                             suffix="_MTSAT2_4_",
+                             resolution=resolution
+                             ),
+            GeoSatelliteData(longitude=57.0,
+                             limit={'left': 13, 'right': 612,
+                                    'top': 13, 'bottom': 612},
+                             rescale=ID,
+                             base_url="057.0E/MET/",
+                             suffix="_MET7_2_",
+                             resolution=resolution
+                             ),
+            GeoSatelliteData(longitude=0.0,
+                             limit={'left': 16, 'right': 913,
+                                    'top': 16, 'bottom': 913},
+                             rescale=ID,
+                             base_url="000.0E/MSG/",
+                             suffix="_MSG3_9_",
+                             resolution=resolution
+                             ),
+            GeoSatelliteData(longitude=-75.0,
+                             limit={'left': 16, 'right': 688,
+                                    'top': 70, 'bottom': 744},
+                             rescale=ID,
+                             base_url="075.0W/GOES/",
+                             suffix="_GOES13_4_",
+                             resolution=resolution
+                             ),
+            GeoSatelliteData(longitude=-135.0,
+                             limit={'left': 16, 'right': 688,
+                                    'top': 70, 'bottom': 744},
+                             rescale=ID,
+                             base_url="135.0W/GOES/",
+                             suffix="_GOES15_4_",
+                             resolution=resolution
+                             ),
         )
 
     def find_latest(self):
@@ -234,20 +302,21 @@ class Dundee(object):
                 Should images created during the image processing be saved
         """
 
-        self.out_image = np.zeros(shape=(SatelliteData.outheight,
-                                         SatelliteData.outwidth))
+        self.out_image = np.zeros(shape=(Satellites.outheight,
+                                         Satellites.outwidth))
 
-        weight_sum = np.zeros(shape=(SatelliteData.outheight,
-                                     SatelliteData.outwidth))
+        weight_sum = np.zeros(shape=(Satellites.outheight,
+                                     Satellites.outwidth))
 
         if self.nprocs == 1:
             i = 1
             for satellite in self.satellite_list:
                 # put class variables into object variables to get it to
                 # work with multiprocessing
-                satellite.outwidth = SatelliteData.outwidth
-                satellite.outheight = SatelliteData.outheight
-                satellite.projection_method = SatelliteData.projection_method
+                satellite.outwidth = Satellites.outwidth
+                satellite.outheight = Satellites.outheight
+                satellite.projection_method = \
+                    Satellites.projection_method
                 img = satellite.project()
                 if debug:
                     self.imageDebug(i, img)
@@ -259,9 +328,10 @@ class Dundee(object):
             pool = Pool(processes=self.nprocs)
 
             for satellite in self.satellite_list:
-                satellite.outwidth = SatelliteData.outwidth
-                satellite.outheight = SatelliteData.outheight
-                satellite.projection_method = SatelliteData.projection_method
+                satellite.outwidth = Satellites.outwidth
+                satellite.outheight = Satellites.outheight
+                satellite.projection_method = \
+                    Satellites.projection_method
 
             images = pool.map(do_project, self.satellite_list)
             i = 1
