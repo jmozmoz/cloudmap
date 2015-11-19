@@ -30,7 +30,7 @@ def main():
     parser.add_argument("-f", "--force", help="Force to recreate cloud map",
                         action="store_true")
     parser.add_argument('-V', '--version', action='version',
-                    version=__version__)
+                        version=__version__)
     args = parser.parse_args()
     config = configparser.SafeConfigParser(
         {'width': '2048',
@@ -74,7 +74,7 @@ def main():
     SatelliteData.outheight = int(config.get("xplanet", 'height'))
 
     satellite_list = Dundee(resolution, username, password,
-                            tempdir, nprocs)
+                            tempdir, nprocs, args.debug)
     dt = satellite_list.find_latest()
 
     print("Download image date/time: ",
@@ -87,8 +87,7 @@ def main():
     if (
         not args.force and
         os.path.isfile(os.path.join(outdir, outfile)) and
-        (os.path.getmtime(os.path.join(outdir, outfile))
-         > latest_download)
+        (os.path.getmtime(os.path.join(outdir, outfile)) > latest_download)
     ):
         sys.exit(0)
 

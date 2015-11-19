@@ -23,6 +23,7 @@ class SatelliteData(object):
     outwidth = 0
     outheight = 0
     projection_method = "pyresample"
+    debug = False
 
     def __init__(self, longitude, limit, rescale, base_url, suffix,
                  resolution):
@@ -134,18 +135,27 @@ class SatelliteData(object):
         downloaded from the Dundee server
         """
         if os.path.isfile(self.filename):
+            if SatelliteData.debug:
+                print("found image:", self.filename)
             return True
         r = requests.head(self.url, auth=(self.username, self.password))
         if r.status_code == requests.codes.ok:  # @UndefinedVariable
+            if SatelliteData.debug:
+                print("can download image:", self.url)
             return True
         else:
+            if SatelliteData.debug:
+                print("cannot download image:", self.url)
             return False
 
     def download_image(self):
         """Download the image if it has not been downloaded before"""
         if os.path.isfile(self.filename):
+            if SatelliteData.debug:
+                print("image has alread been downloaded:", self.filename)
             self.filemodtime = os.path.getmtime(self.filename)
             return
+        print("download image:", self.url)
         r = requests.get(self.url, auth=(self.username, self.password))
         i = Image.open(BytesIO(r.content))
         i.save(self.filename)

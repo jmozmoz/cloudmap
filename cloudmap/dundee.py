@@ -115,7 +115,8 @@ class Dundee(object):
     Class to download and process all images from the Dundee server
     """
 
-    def __init__(self, resolution, username, password, tempdir, nprocs=1):
+    def __init__(self, resolution, username, password, tempdir, nprocs=1,
+                 debug=False):
         """
         Args:
             * resolution:
@@ -135,6 +136,9 @@ class Dundee(object):
         self.password = password
         self.tempdir = tempdir
         self.nprocs = nprocs
+        self.debug = debug
+
+        SatelliteData.debug = debug
 
         self.satellite_list = (
             SatelliteData(longitude=145.0,
@@ -158,7 +162,7 @@ class Dundee(object):
                                  'top': 16, 'bottom': 913},
                           rescale=ID,
                           base_url="000.0E/MSG/",
-                          suffix="_MSG3_9_",
+                          suffix="_MSG1_9_",
                           resolution=resolution
                           ),
             SatelliteData(longitude=-75.0,
