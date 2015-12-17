@@ -74,7 +74,7 @@ def main():
     Satellites.outheight = int(config.get("xplanet", 'height'))
 
     satellite_list = Satellites(resolution, username, password,
-                                tempdir, nprocs)
+                                tempdir, nprocs, args.debug)
     dt = satellite_list.find_latest()
 
     print("Download image date/time: ",

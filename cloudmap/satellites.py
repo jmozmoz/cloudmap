@@ -143,7 +143,8 @@ class Satellites(object):
     outheight = 0
     projection_method = "pyresample"
 
-    def __init__(self, resolution, username, password, tempdir, nprocs=1):
+    def __init__(self, resolution, username, password, tempdir, nprocs=1,
+                 debug=False):
         """
         Args:
             * resolution:
@@ -165,53 +166,14 @@ class Satellites(object):
         self.nprocs = nprocs
 
         self.satellite_list = (
-            PolarSatelliteData(longitude=65.0,
-                               latitude=90,
-                               extent=(-6500e3, -11150e3, 10000e3, 400e3),
-                               base_url="145.0E/MTSAT/",
-                               rescale=curve2,
-                               weight_width=75,
-                               suffix="_ir_ICAO-G_bw"
-                               ),
-            PolarSatelliteData(longitude=-45.0,
-                               latitude=90,
-                               extent=(-7000e3, -10300e3, 7900e3, 1700e3),
-                               base_url="145.0E/MTSAT/",
-                               rescale=curve2,
-                               weight_width=75,
-                               suffix="_ir_ICAO-H_bw"
-                               ),
-            PolarSatelliteData(longitude=-155.0,
-                               latitude=90,
-                               extent=(-9000e3, -11200e3, 6900e3, 500e3),
-                               base_url="145.0E/MTSAT/",
-                               rescale=curve2,
-                               weight_width=75,
-                               suffix="_ir_ICAO-I_bw"
-                               ),
-            PolarSatelliteData(longitude=-142.0,
-                               latitude=-90,
-                               extent=(-7200e3, -2800e3, 8500e3, 9700e3),
-                               base_url="145.0E/MTSAT/",
-                               rescale=curve2,
-                               weight_width=180,
-                               suffix="_ir_ICAO-J_bw"
-                               ),
-            PolarSatelliteData(longitude=97.0,
-                               latitude=-90,
-                               extent=(-10500e3, -650e3, 7700e3, 12000e3),
-                               base_url="145.0E/MTSAT/",
-                               rescale=curve2,
-                               weight_width=90,
-                               suffix="_ir_ICAO-K_bw"
-                               ),
             GeoSatelliteData(longitude=145.0,
                              limit={'left': 9, 'right': 680,
                                     'top': 12, 'bottom': 683},
                              rescale=curve,
                              base_url="145.0E/MTSAT/",
                              suffix="_MTSAT2_4_",
-                             resolution=resolution
+                             resolution=resolution,
+                             debug=debug
                              ),
             GeoSatelliteData(longitude=57.0,
                              limit={'left': 13, 'right': 612,
@@ -219,7 +181,8 @@ class Satellites(object):
                              rescale=ID,
                              base_url="057.0E/MET/",
                              suffix="_MET7_2_",
-                             resolution=resolution
+                             resolution=resolution,
+                             debug=debug
                              ),
             GeoSatelliteData(longitude=0.0,
                              limit={'left': 16, 'right': 913,
@@ -227,7 +190,8 @@ class Satellites(object):
                              rescale=ID,
                              base_url="000.0E/MSG/",
                              suffix="_MSG3_9_",
-                             resolution=resolution
+                             resolution=resolution,
+                             debug=debug
                              ),
             GeoSatelliteData(longitude=-75.0,
                              limit={'left': 16, 'right': 688,
@@ -235,7 +199,8 @@ class Satellites(object):
                              rescale=ID,
                              base_url="075.0W/GOES/",
                              suffix="_GOES13_4_",
-                             resolution=resolution
+                             resolution=resolution,
+                             debug=debug
                              ),
             GeoSatelliteData(longitude=-135.0,
                              limit={'left': 16, 'right': 688,
@@ -243,8 +208,49 @@ class Satellites(object):
                              rescale=ID,
                              base_url="135.0W/GOES/",
                              suffix="_GOES15_4_",
-                             resolution=resolution
+                             resolution=resolution,
+                             debug=debug
                              ),
+#             PolarSatelliteData(longitude=65.0,
+#                                latitude=90,
+#                                extent=(-6500e3, -11150e3, 10000e3, 400e3),
+#                                base_url="145.0E/MTSAT/",
+#                                rescale=curve2,
+#                                weight_width=75,
+#                                suffix="_ir_ICAO-G_bw"
+#                                ),
+#             PolarSatelliteData(longitude=-45.0,
+#                                latitude=90,
+#                                extent=(-7000e3, -10300e3, 7900e3, 1700e3),
+#                                base_url="145.0E/MTSAT/",
+#                                rescale=curve2,
+#                                weight_width=75,
+#                                suffix="_ir_ICAO-H_bw"
+#                                ),
+#             PolarSatelliteData(longitude=-155.0,
+#                                latitude=90,
+#                                extent=(-9000e3, -11200e3, 6900e3, 500e3),
+#                                base_url="145.0E/MTSAT/",
+#                                rescale=curve2,
+#                                weight_width=75,
+#                                suffix="_ir_ICAO-I_bw"
+#                                ),
+#             PolarSatelliteData(longitude=-142.0,
+#                                latitude=-90,
+#                                extent=(-7200e3, -2800e3, 8500e3, 9700e3),
+#                                base_url="145.0E/MTSAT/",
+#                                rescale=curve2,
+#                                weight_width=180,
+#                                suffix="_ir_ICAO-J_bw"
+#                                ),
+#             PolarSatelliteData(longitude=97.0,
+#                                latitude=-90,
+#                                extent=(-10500e3, -650e3, 7700e3, 12000e3),
+#                                base_url="145.0E/MTSAT/",
+#                                rescale=curve2,
+#                                weight_width=90,
+#                                suffix="_ir_ICAO-K_bw"
+#                                ),
         )
 
     def find_latest(self):
@@ -253,7 +259,7 @@ class Satellites(object):
         be downloaded
         """
         dt = datetime.datetime.utcnow()
-        max_tries = 10
+        max_tries = 200
 
         for _ in range(max_tries):
             found_all = True

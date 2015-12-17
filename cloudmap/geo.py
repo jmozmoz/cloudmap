@@ -20,7 +20,7 @@ class GeoSatelliteData(object):
     """
 
     def __init__(self, longitude, limit, rescale, base_url, suffix,
-                 resolution):
+                 resolution, debug=False):
         """
         Args:
 
@@ -46,6 +46,8 @@ class GeoSatelliteData(object):
         resolution_mult = {'low': 1,
                            'medium': 2,
                            'high': 4}
+
+        self.debug = debug
 
         try:
             resfile = resolution_str[resolution]
@@ -129,18 +131,27 @@ class GeoSatelliteData(object):
         downloaded from the Dundee server
         """
         if os.path.isfile(self.filename):
+            if self.debug:
+                print("found image:", self.filename)
             return True
         r = requests.head(self.url, auth=(self.username, self.password))
         if r.status_code == requests.codes.ok:  # @UndefinedVariable
+            if self.debug:
+                print("can download image:", self.url)
             return True
         else:
+            if self.debug:
+                print("cannot download image:", self.url)
             return False
 
     def download_image(self):
         """Download the image if it has not been downloaded before"""
         if os.path.isfile(self.filename):
+            if self.debug:
+                print("image has alread been downloaded:", self.filename)
             self.filemodtime = os.path.getmtime(self.filename)
             return
+        print("download image:", self.url)
         r = requests.get(self.url, auth=(self.username, self.password))
         i = Image.open(BytesIO(r.content))
         i.save(self.filename)
@@ -183,7 +194,7 @@ class GeoSatelliteData(object):
                        target_res=(width, height))
 
         dataResampledImage = self.rescale(buf.data)
-#         dataResampledImage = self.polar_clouds(dataResampledImage)
+        dataResampledImage = self.polar_clouds(dataResampledImage)
         weight = self.get_weight()
 
         result = np.array([dataResampledImage, weight])
@@ -237,10 +248,27 @@ class GeoSatelliteData(object):
         dataResampled = dataIC.resample(pc(self.outwidth,
                                            self.outheight))
         dataResampledImage = self.rescale(dataResampled.image_data)
-#         dataResampledImage = self.polar_clouds(dataResampledImage)
+        dataResampledImage = self.polar_clouds(dataResampledImage)
         weight = self.get_weight()
 
-        print("image max:", np.max(dataResampledImage))
+        if self.debug:
+            print("image max:", np.max(dataResampledImage))
 
         result = np.array([dataResampledImage, weight])
         return result
+
+    def polar_clouds(self, dataResampledImage):
+        # create fantasy polar clouds by mirroring high latitude data
+        polar_height = int(95.0 / 1024.0 * self.outheight)
+        north_pole_indices = range(0, polar_height)
+        north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
+        dataResampledImage[north_pole_indices, :] =\
+            dataResampledImage[north_pole_copy_indices, :]
+        south_pole_indices = range(self.outheight - polar_height,
+                                   self.outheight)
+        south_pole_copy_indices = range(self.outheight - polar_height,
+                                        self.outheight - 2 * polar_height,
+                                        -1)
+        dataResampledImage[south_pole_indices, :] = \
+            dataResampledImage[south_pole_copy_indices, :]
+        return dataResampledImage
