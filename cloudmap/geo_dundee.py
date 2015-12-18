@@ -13,7 +13,7 @@ from PIL import Image
 import sys
 
 
-class GeoSatelliteData(object):
+class GeoSatelliteDataDundee(object):
 
     """
     A class to download and process satellite image
@@ -55,7 +55,7 @@ class GeoSatelliteData(object):
         except KeyError:
             sys.exit('Wrong resolution specified in config file! ' +
                      resolution +
-                     ' Valid values are: medium, high')
+                     ' Valid values are: low, medium, high')
 
         self.longitude = longitude
         self.limit = limit
@@ -101,7 +101,7 @@ class GeoSatelliteData(object):
                 directory to store downloaded images
         """
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    int((dt.hour // 3) * 3), 0, 0)
+                                    int((dt.hour // 1) * 1), 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")

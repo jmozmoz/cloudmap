@@ -4,8 +4,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 from .mkdir import mkdir_p
-from .geo import GeoSatelliteData
+from .geo_dundee import GeoSatelliteDataDundee
 from .polar import PolarSatelliteData
+from .geo_jma import GeoSatelliteDataJMA
 
 import sys
 import datetime
@@ -166,91 +167,60 @@ class Satellites(object):
         self.nprocs = nprocs
 
         self.satellite_list = (
-            GeoSatelliteData(longitude=145.0,
-                             limit={'left': 9, 'right': 680,
-                                    'top': 12, 'bottom': 683},
-                             rescale=curve,
-                             base_url="145.0E/MTSAT/",
-                             suffix="_MTSAT2_4_",
-                             resolution=resolution,
-                             debug=debug
-                             ),
-            GeoSatelliteData(longitude=57.0,
-                             limit={'left': 13, 'right': 612,
-                                    'top': 13, 'bottom': 612},
-                             rescale=ID,
-                             base_url="057.0E/MET/",
-                             suffix="_MET7_2_",
-                             resolution=resolution,
-                             debug=debug
-                             ),
-            GeoSatelliteData(longitude=0.0,
-                             limit={'left': 16, 'right': 913,
-                                    'top': 16, 'bottom': 913},
-                             rescale=ID,
-                             base_url="000.0E/MSG/",
-                             suffix="_MSG3_9_",
-                             resolution=resolution,
-                             debug=debug
-                             ),
-            GeoSatelliteData(longitude=-75.0,
-                             limit={'left': 16, 'right': 688,
-                                    'top': 70, 'bottom': 744},
-                             rescale=ID,
-                             base_url="075.0W/GOES/",
-                             suffix="_GOES13_4_",
-                             resolution=resolution,
-                             debug=debug
-                             ),
-            GeoSatelliteData(longitude=-135.0,
-                             limit={'left': 16, 'right': 688,
-                                    'top': 70, 'bottom': 744},
-                             rescale=ID,
-                             base_url="135.0W/GOES/",
-                             suffix="_GOES15_4_",
-                             resolution=resolution,
-                             debug=debug
-                             ),
-#             PolarSatelliteData(longitude=65.0,
-#                                latitude=90,
-#                                extent=(-6500e3, -11150e3, 10000e3, 400e3),
-#                                base_url="145.0E/MTSAT/",
-#                                rescale=curve2,
-#                                weight_width=75,
-#                                suffix="_ir_ICAO-G_bw"
-#                                ),
-#             PolarSatelliteData(longitude=-45.0,
-#                                latitude=90,
-#                                extent=(-7000e3, -10300e3, 7900e3, 1700e3),
-#                                base_url="145.0E/MTSAT/",
-#                                rescale=curve2,
-#                                weight_width=75,
-#                                suffix="_ir_ICAO-H_bw"
-#                                ),
-#             PolarSatelliteData(longitude=-155.0,
-#                                latitude=90,
-#                                extent=(-9000e3, -11200e3, 6900e3, 500e3),
-#                                base_url="145.0E/MTSAT/",
-#                                rescale=curve2,
-#                                weight_width=75,
-#                                suffix="_ir_ICAO-I_bw"
-#                                ),
-#             PolarSatelliteData(longitude=-142.0,
-#                                latitude=-90,
-#                                extent=(-7200e3, -2800e3, 8500e3, 9700e3),
-#                                base_url="145.0E/MTSAT/",
-#                                rescale=curve2,
-#                                weight_width=180,
-#                                suffix="_ir_ICAO-J_bw"
-#                                ),
-#             PolarSatelliteData(longitude=97.0,
-#                                latitude=-90,
-#                                extent=(-10500e3, -650e3, 7700e3, 12000e3),
-#                                base_url="145.0E/MTSAT/",
-#                                rescale=curve2,
-#                                weight_width=90,
-#                                suffix="_ir_ICAO-K_bw"
-#                                ),
+            GeoSatelliteDataDundee(longitude=57.0,
+                                   limit={'left': 14, 'right': 611,
+                                          'top': 14, 'bottom': 611},
+                                   rescale=ID,
+                                   base_url="057.0E/MET/",
+                                   suffix="_MET7_2_",
+                                   resolution=resolution,
+                                   debug=debug
+                                   ),
+            GeoSatelliteDataDundee(longitude=0.0,
+                                   limit={'left': 17, 'right': 911,
+                                          'top': 17, 'bottom': 911},
+                                   rescale=ID,
+                                   base_url="000.0E/MSG/",
+                                   suffix="_MSG3_9_",
+                                   resolution=resolution,
+                                   debug=debug
+                                   ),
+            GeoSatelliteDataDundee(longitude=-75.0,
+                                   limit={'left': 16, 'right': 688,
+                                          'top': 70, 'bottom': 744},
+                                   rescale=ID,
+                                   base_url="075.0W/GOES/",
+                                   suffix="_GOES13_4_",
+                                   resolution=resolution,
+                                   debug=debug
+                                   ),
+            GeoSatelliteDataDundee(longitude=-135.0,
+                                   limit={'left': 17, 'right': 688,
+                                          'top': 70, 'bottom': 744},
+                                   rescale=ID,
+                                   base_url="135.0W/GOES/",
+                                   suffix="_GOES15_4_",
+                                   resolution=resolution,
+                                   debug=debug
+                                   ),
+#             GeoSatelliteDataDundee(longitude=140.7,
+#                                    limit={'left': 17, 'right': 688,
+#                                           'top': 70, 'bottom': 744},
+#                                    rescale=ID,
+#                                    base_url="140.7E/MTSAT/",
+#                                    suffix="_MTSAT3_7_",
+#                                    resolution=resolution,
+#                                    debug=debug
+#                                    ),
+            GeoSatelliteDataJMA(longitude=139.5,
+                                limit={'left': 12, 'right': 787,
+                                       'top': 12, 'bottom': 787},
+                                rescale=ID,
+                                base_url="",
+                                suffix="-00",
+                                resolution=resolution,
+                                debug=debug
+                                ),
         )
 
     def find_latest(self):
@@ -271,7 +241,7 @@ class Satellites(object):
 
             if found_all:
                 break
-            dt = dt - datetime.timedelta(hours=3)
+            dt = dt - datetime.timedelta(hours=1)
 
         if not found_all:
             sys.exit("Cannot download (all) satellite images!")

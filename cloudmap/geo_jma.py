@@ -10,46 +10,75 @@ import os
 import datetime
 import glob
 from PIL import Image
-from numpy.core.umath import sign
+import sys
 
 
-class PolarSatelliteData(object):
+class GeoSatelliteDataJMA(object):
 
     """
     A class to download and process satellite image
     """
 
-    def __init__(self, longitude, latitude, extent,
-                 base_url, rescale, weight_width, suffix, debug):
+    def __init__(self, longitude, limit, rescale, base_url, suffix,
+                 resolution, debug=False):
         """
         Args:
 
             * longitude:
                 the longitude the satellite is positioned
-            * latitude:
-                the latitude, i.e. the pole used for the stereographic
-                projection
-            * extent:
-                the limits of the area covered by the satellite image
+            * limit:
+                borders of the real satellite data in the
+                downloaded image
+            * rescale:
+                function to rescale image colors (if not the
+                full color space is used)
             * base_url:
                 the url the image to download
+            * suffix:
+                suffix of the image name
+            * resolution:
+                resolution of the image to be downloaded (low, medium, high)
         """
 
+        resolution_str = {'low': '1/',
+                          'medium': '1/',
+                          'high': '0/'}
+        resolution_mult = {'low': 1,
+                           'medium': 1,
+                           'high': 1}
+
+        self.debug = debug
+
+        try:
+            resfile = resolution_str[resolution]
+            self.resolution_mult = resolution_mult[resolution]
+        except KeyError:
+            sys.exit('Wrong resolution specified in config file! ' +
+                     resolution +
+                     ' Valid values are: medium, high')
+
         self.longitude = longitude
-        self.latitude = latitude
-        self.extent = extent
-        self.base_url = "https://www.aviationweather.gov/data/obs/sat/intl/"
-        self.suffix = suffix + ".jpg"
+        self.limit = limit
         self.rescale = rescale
+        self.base_url = "http://www.jma.go.jp/en/gms/imgs_c/6/infrared/" + \
+            base_url + resfile
+        self.suffix = suffix + ".png"
         self.filemodtime = 0
         self.outwidth = 0
         self.outheight = 0
-        self.weight_width = weight_width
         self.projection_method = "pyresample"
-        self.debug = debug
 
     def login(self, username, password):
         pass
+#     @staticmethod
+#     def curve(b):
+#         """Rescale the brightness values used for MTSAT2 satellite"""
+#         return np.minimum(b * 255.0 / 193.0, 255)
+#
+#     @staticmethod
+#     def ID(b):
+#         """Identity function"""
+#         return b
 
     def set_time(self, dt, tempdir=""):
         """
@@ -62,22 +91,12 @@ class PolarSatelliteData(object):
                 directory to store downloaded images
         """
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    int((dt.hour // 3) * 3), 0, 0)
-        day = self.dt.strftime("%d").lstrip("0")
-        month = self.dt.strftime("%m").lstrip("0")
-        hour = self.dt.strftime("%H").lstrip("0")
-        if not hour:  # if hour empty then assume midnight
-            str1 = self.dt.strftime("%Y/") + month + "/" + day + "/" + "0/"
-            str2 = self.dt.strftime("%Y_") + month + "_" + day + "_" + "0"
-        else:
-            str1 = self.dt.strftime("%Y/") + month + "/" + day + \
-                "/" + hour + "00/"
-            str2 = self.dt.strftime("%Y_") + month + "_" + day + \
-                "_" + hour + "00"
-        str2 = '20151204_1815'
-        str3 = "*_*"
-        self.url = self.base_url + str2 + self.suffix
-        self.filename = os.path.join(tempdir, str2 + self.suffix)
+                                    int((dt.hour // 1) * 1), 0, 0)
+
+        str1 = self.dt.strftime("%Y%m%d%H00")
+        str3 = "????????????"
+        self.url = self.base_url + str1 + self.suffix
+        self.filename = os.path.join(tempdir, str1 + self.suffix)
         self.purge_pattern = os.path.join(tempdir, str3 + self.suffix)
 
     def purge(self):
@@ -119,12 +138,12 @@ class PolarSatelliteData(object):
         i.save(self.filename)
         self.filemodtime = os.path.getmtime(self.filename)
 
-    def cut_borders(self, pil_im):
+    def cut_borders(self, data):
         """Remove the white border of a satellite images (including text)"""
-        w, h = pil_im.size
-        pil_im = pil_im.crop((0, 12, w, h))
 
-        return pil_im
+        l = {}
+        l.update((x, y * self.resolution_mult) for x, y in self.limit.items())
+        return data[l['top']:l['bottom'], l['left']:l['right']]
 
     def project(self):
         if self.projection_method == "pyresample":
@@ -140,8 +159,7 @@ class PolarSatelliteData(object):
         import cartopy.crs as ccrs
         from cartopy.img_transform import warp_array
 
-        img = Image.open(self.filename).convert("L")
-        self.data = self.cut_borders(img)
+        self.load_image()
 
         width = self.outwidth
         height = self.outheight
@@ -156,7 +174,7 @@ class PolarSatelliteData(object):
                        target_res=(width, height))
 
         dataResampledImage = self.rescale(buf.data)
-#         dataResampledImage = self.polar_clouds(dataResampledImage)
+        dataResampledImage = self.polar_clouds(dataResampledImage)
         weight = self.get_weight()
 
         result = np.array([dataResampledImage, weight])
@@ -164,8 +182,8 @@ class PolarSatelliteData(object):
 
     def get_weight(self):
         """Get weighting function for satellite image for overlaying"""
-
-        weight = np.array([max((self.weight_width -
+        weight_width = 55
+        weight = np.array([max((weight_width -
                                 min([abs(self.longitude - x),
                                     abs(self.longitude - x + 360),
                                     abs(self.longitude - x - 360)])) / 180,
@@ -174,11 +192,10 @@ class PolarSatelliteData(object):
                                                 180,
                                                 self.outwidth)])
 
-        weight = np.array([1/(2.5/9) * weight *
+        weight = np.array([weight *
                            max(1e-7,
-                               -sign(self.latitude) *
-                               (i - self.outheight/2)/self.outheight*2 -
-                               6.5/9)
+                               1 - 9/7 *
+                               abs(i - self.outheight/2)/self.outheight*2)**0.5
                            for i in range(self.outheight)])
 
         return weight
@@ -191,51 +208,51 @@ class PolarSatelliteData(object):
 
         from pyresample import image, geometry
         from .satellites import pc
-        from PIL import ImageFilter
 
-        img = Image.open(self.filename).convert("L")
-        img = self.cut_borders(img)
+        self.load_image()
 
-        # round away grid
-        im2 = img.filter(ImageFilter.MedianFilter(3))
-        # create mask for borders
-        mask = img.point(lambda x: 0 if x < 250 else 255).filter(
-            ImageFilter.FIND_EDGES).filter(ImageFilter.MaxFilter(3))
-
-        # create replacement picture with borders smoothed way
-        # picture_count += 1
-        im3 = im2.filter(ImageFilter.MinFilter(7))
-
-        im4 = Image.composite(im3, im2, mask)
-        self.data = np.array(im4)
-
-        self.x_size = self.data.shape[1]
-        self.y_size = self.data.shape[0]
-        proj_dict = {'lon_0': self.longitude,
-                     'lat_0': self.latitude,
-                     'proj': 'stere',
-                     'ellps': 'WGS84',
-                     'units': 'm'}
-        area = geometry.AreaDefinition('stere', 'stere', 'stere',
-                                       proj_dict,
-                                       self.x_size,
-                                       self.y_size,
-                                       self.extent)
-
+        x_size = self.data.shape[1]
+        y_size = self.data.shape[0]
+        proj_dict = {'a': '6378137.0', 'b': '6356752.3',
+                     'lon_0': self.longitude,
+                     'h': '35785831.0', 'proj': 'geos'}
+        self.extent = 5568742.4 * 0.964
+        area_extent = (-self.extent, -self.extent,
+                       self.extent, self.extent)
+        area = geometry.AreaDefinition('geo', 'geostat', 'geo',
+                                       proj_dict, x_size,
+                                       y_size, area_extent)
         dataIC = image.ImageContainerQuick(self.data, area)
+
         dataResampled = dataIC.resample(pc(self.outwidth,
                                            self.outheight))
         dataResampledImage = self.rescale(dataResampled.image_data)
-#        dataResampledImage = np.ones(shape=dataResampledImage.shape) * 1e-7
+        dataResampledImage = self.polar_clouds(dataResampledImage)
+        weight = self.get_weight()
 
-        weightResampledImage = self.get_weight()
-#         weightIC = image.ImageContainerQuick(weight, area)
-#         weightResampled = weightIC.resample(pc(self.outwidth,
-#                                             self.outheight))
-#         weightResampledImage = weightResampled.image_data
-#         dataResampledImage = self.polar_clouds(dataResampledImage)
+        if self.debug:
+            print("image max:", np.max(dataResampledImage))
 
-        print("image max:", np.max(dataResampledImage))
-
-        result = np.array([dataResampledImage, weightResampledImage])
+        result = np.array([dataResampledImage, weight])
         return result
+
+    def polar_clouds(self, dataResampledImage):
+        # create fantasy polar clouds by mirroring high latitude data
+        polar_height = int(95.0 / 1024.0 * self.outheight)
+        north_pole_indices = range(0, polar_height)
+        north_pole_copy_indices = range(2 * polar_height, polar_height, -1)
+        dataResampledImage[north_pole_indices, :] =\
+            dataResampledImage[north_pole_copy_indices, :]
+        south_pole_indices = range(self.outheight - polar_height,
+                                   self.outheight)
+        south_pole_copy_indices = range(self.outheight - polar_height,
+                                        self.outheight - 2 * polar_height,
+                                        -1)
+        dataResampledImage[south_pole_indices, :] = \
+            dataResampledImage[south_pole_copy_indices, :]
+        return dataResampledImage
+
+    def load_image(self):
+        img = Image.open(self.filename)
+        red, green, blue = img.split()
+        self.data = self.cut_borders(np.array(red))
