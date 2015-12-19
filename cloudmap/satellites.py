@@ -241,7 +241,7 @@ class Satellites(object):
 
             if found_all:
                 break
-            dt = dt - datetime.timedelta(hours=1)
+            dt = dt - datetime.timedelta(hours=3)
 
         if not found_all:
             sys.exit("Cannot download (all) satellite images!")

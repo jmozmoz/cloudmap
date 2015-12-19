@@ -91,7 +91,7 @@ class GeoSatelliteDataJMA(object):
                 directory to store downloaded images
         """
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    int((dt.hour // 1) * 1), 0, 0)
+                                    int((dt.hour // 3) * 3), 0, 0)
 
         str1 = self.dt.strftime("%Y%m%d%H00")
         str3 = "????????????"
