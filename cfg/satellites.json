@@ -55,21 +55,7 @@
         "suffix": "_GOES15_4_"
     },
     {
-        "type": "__geoDundee",
-        "longitude": 140.7,
-        "limit":
-        {
-            "left": 17,
-            "right": 688,
-            "top": 70,
-            "bottom": 744
-        },
-        "rescale": "ID",
-        "base_url": "140.7E/MTSAT/",
-        "suffix": "_MTSAT3_7_"
-    },
-    {
-        "type": "geoJMA",
+        "type": "__geoJMA",
         "longitude": 139.5,
         "limit":
         {
@@ -81,5 +67,19 @@
         "rescale": "ID",
         "base_url": "",
         "suffix": "-00"
+    },
+    {
+        "type": "geoDundee",
+        "longitude": 140.7,
+        "limit":
+        {
+           "left": 18,
+           "right": 1357,
+           "top": 16,
+           "bottom": 1359
+        },
+        "rescale": "ID",
+        "base_url": "140.7E/MTSAT/",
+        "suffix": "_MTSAT3_7_"
     }
 ]
