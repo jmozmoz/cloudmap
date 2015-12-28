@@ -25,9 +25,6 @@ of that service this script `create_map` was developed to automatically download
 from the `Dundee Satellite Receiving Station, Dundee University, UK <http://www.sat.dundee.ac.uk/>`_.
 To use this service you need an account there (which is free). Also a new cloud map can be created every three hours.
 
-Temporarily the images of the Himawari satellite are downloaded from the website of the
-`Japan Meteorological Agency <http://www.jma.go.jp/en/gms/>`_.
-
 Set your login information in the configuration file (default name for UNIX-like systems: ``$HOME/.CreateCloudMap/CreateCloudMap.ini``, for Windows: ``%HOME%\.CreateCloudMap\CreateCloudMap.ini``)::
 
   [Download]
