@@ -13,7 +13,7 @@ import datetime
 import numpy as np
 import os
 from PIL import Image
-
+import json
 
 def curve(b):
     """Rescale the brightness values used for MTSAT2 satellite"""
@@ -166,62 +166,32 @@ class Satellites(object):
         self.tempdir = tempdir
         self.nprocs = nprocs
 
-        self.satellite_list = (
-            GeoSatelliteDataDundee(longitude=57.0,
-                                   limit={'left': 14, 'right': 611,
-                                          'top': 14, 'bottom': 611},
-                                   rescale=ID,
-                                   base_url="057.0E/MET/",
-                                   suffix="_MET7_2_",
-                                   resolution=resolution,
-                                   debug=debug
-                                   ),
-            GeoSatelliteDataDundee(longitude=0.0,
-                                   limit={'left': 17, 'right': 911,
-                                          'top': 17, 'bottom': 911},
-                                   rescale=ID,
-                                   base_url="000.0E/MSG/",
-                                   suffix="_MSG3_9_",
-                                   resolution=resolution,
-                                   debug=debug
-                                   ),
-            GeoSatelliteDataDundee(longitude=-75.0,
-                                   limit={'left': 16, 'right': 688,
-                                          'top': 70, 'bottom': 744},
-                                   rescale=ID,
-                                   base_url="075.0W/GOES/",
-                                   suffix="_GOES13_4_",
-                                   resolution=resolution,
-                                   debug=debug
-                                   ),
-            GeoSatelliteDataDundee(longitude=-135.0,
-                                   limit={'left': 17, 'right': 688,
-                                          'top': 70, 'bottom': 744},
-                                   rescale=ID,
-                                   base_url="135.0W/GOES/",
-                                   suffix="_GOES15_4_",
-                                   resolution=resolution,
-                                   debug=debug
-                                   ),
-#             GeoSatelliteDataDundee(longitude=140.7,
-#                                    limit={'left': 17, 'right': 688,
-#                                           'top': 70, 'bottom': 744},
-#                                    rescale=ID,
-#                                    base_url="140.7E/MTSAT/",
-#                                    suffix="_MTSAT3_7_",
-#                                    resolution=resolution,
-#                                    debug=debug
-#                                    ),
-            GeoSatelliteDataJMA(longitude=139.5,
-                                limit={'left': 12, 'right': 787,
-                                       'top': 12, 'bottom': 787},
-                                rescale=ID,
-                                base_url="",
-                                suffix="-00",
-                                resolution=resolution,
-                                debug=debug
-                                ),
-        )
+        jsonfile = os.path.expanduser("~/.CreateCloudMap/satellites.json")
+        satellite_json = json.load(open(jsonfile))
+        self.satellite_list = []
+
+        for s in satellite_json:
+            rescale = ID if s['rescale'] == "ID" else None
+            if s['type'] == 'geoDundee':
+                self.satellite_list.append(GeoSatelliteDataDundee(
+                    longitude=s['longitude'],
+                    limit=s['limit'],
+                    base_url=s['base_url'],
+                    suffix=s['suffix'],
+                    resolution=resolution,
+                    debug=debug,
+                    rescale=rescale
+                ))
+            elif s['type'] == 'geoJMA':
+                self.satellite_list.append(GeoSatelliteDataJMA(
+                    longitude=s['longitude'],
+                    limit=s['limit'],
+                    base_url=s['base_url'],
+                    suffix=s['suffix'],
+                    resolution=resolution,
+                    debug=debug,
+                    rescale=rescale
+                ))
 
     def find_latest(self):
         """

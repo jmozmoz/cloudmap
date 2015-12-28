@@ -30,15 +30,21 @@ def mkdir_p(path):
 def copy_config():
     try:
         from shutil import copyfile
-        src = os.path.join('cfg', 'CreateCloudMap.ini')
+        srcfiles = [
+            'CreateCloudMap.ini',
+            'satellites.json'
+        ]
+
         dstdir = os.path.expanduser('~/.CreateCloudMap')
-        dstfile = os.path.join(dstdir, 'CreateCloudMap.ini')
-        updatefile = os.path.join(dstdir, 'CreateCloudMap.ini.new')
         mkdir_p(dstdir)
-        if not os.path.exists(dstfile):
-            copyfile(src, dstfile)
-        else:
-            copyfile(src, updatefile)
+
+        for src in srcfiles:
+            dstfile = os.path.join(dstdir, src)
+            srcpath = os.path.join('cfg', src)
+            if not os.path.exists(dstfile):
+                copyfile(srcpath, dstfile)
+            else:
+                copyfile(srcpath, dstfile + '.new')
 
     except IndexError:
         pass
@@ -76,7 +82,7 @@ setup(
     extras_require={
         'cartopy':  ["cartopy", "shapely", "pyshp"],
         'debug_pyresample': ["basemap", "matplotlib"],
-        'debug_cartopy': ["matplotlib"]
+        'debug_cartopy': ["cartopy", "shapely", "pyshp", "matplotlib"]
     },
     entry_points={
         'console_scripts': [
@@ -103,10 +109,4 @@ setup(
         "Topic :: Scientific/Engineering :: Visualization",
         "Topic :: Utilities",
     ],
-    scripts=['winpostinstall.py'],
-    options={
-        "bdist_wininst": {
-            "install_script": "winpostinstall.py",
-        },
-    }
 )

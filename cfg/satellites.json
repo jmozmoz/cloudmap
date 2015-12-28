@@ -1,0 +1,85 @@
+[
+    {
+        "type": "geoDundee",
+        "longitude": 57.0,
+        "limit":
+        {
+           "left": 14,
+           "right": 611,
+           "top": 14,
+           "bottom": 611
+        },
+        "rescale": "ID",
+        "base_url": "057.0E/MET/",
+        "suffix": "_MET7_2_"
+    },
+    {
+        "type": "geoDundee",
+        "longitude": 0.0,
+        "limit":
+        {
+           "left": 17,
+           "right": 911,
+           "top": 17,
+           "bottom": 911
+        },
+        "rescale": "ID",
+        "base_url": "000.0E/MSG/",
+        "suffix": "_MSG3_9_"
+    },
+    {
+        "type": "geoDundee",
+        "longitude": -75.0,
+        "limit":
+        {
+           "left": 16,
+           "right": 688,
+           "top": 70,
+        "bottom": 744},
+        "rescale": "ID",
+        "base_url": "075.0W/GOES/",
+        "suffix": "_GOES13_4_"
+    },
+    {
+        "type": "geoDundee",
+        "longitude": -135.0,
+        "limit":
+        {
+           "left": 17,
+           "right": 688,
+           "top": 70,
+           "bottom": 744
+        },
+        "rescale": "ID",
+        "base_url": "135.0W/GOES/",
+        "suffix": "_GOES15_4_"
+    },
+    {
+        "type": "__geoDundee",
+        "longitude": 140.7,
+        "limit":
+        {
+            "left": 17,
+            "right": 688,
+            "top": 70,
+            "bottom": 744
+        },
+        "rescale": "ID",
+        "base_url": "140.7E/MTSAT/",
+        "suffix": "_MTSAT3_7_"
+    },
+    {
+        "type": "geoJMA",
+        "longitude": 139.5,
+        "limit":
+        {
+            "left": 12,
+            "right": 787,
+            "top": 12,
+            "bottom": 787
+        },
+        "rescale": "ID",
+        "base_url": "",
+        "suffix": "-00"
+    }
+]
