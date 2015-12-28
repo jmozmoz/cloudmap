@@ -97,14 +97,14 @@ def saveDebug_pyresample(weight_sum, filename):
                                     Satellites.outheight),
                                  resolution='c')
     bmap.drawcoastlines(linewidth=0.2, color='red')
-    bmap.drawmeridians(np.arange(-180, 180, 45), linewidth=0.2, color='red')
+    bmap.drawmeridians(np.arange(-180, 180, 10), linewidth=0.2, color='red')
     bmap.drawparallels(np.arange(-90, 90, 10), linewidth=0.2, color='red')
     bmap.imshow(new_image, origin='upper', vmin=0, vmax=255,
                 cmap=cm.Greys_r)  # @UndefinedVariable
 #    plt.show()
 
-    i = datetime.datetime.now()
-    plt.text(0, -50, "%s" % i.isoformat(),
+    i = datetime.datetime.utcnow()
+    plt.text(0, -75, "%s UTC" % i.isoformat(),
              color='green', size=15,
              horizontalalignment='center')
     plt.savefig(filename, bbox_inches='tight', pad_inches=0, dpi=400)

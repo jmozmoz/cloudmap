@@ -61,7 +61,11 @@ class GeoSatelliteDataDundee(object):
         self.limit = limit
         self.rescale = rescale
         self.base_url = "http://www.sat.dundee.ac.uk/xrit/" + base_url
-        self.suffix = suffix + resfile + ".jpeg"
+        if self.debug:
+            self.suffix = suffix + resfile + "_grid.jpeg"
+        else:
+            self.suffix = suffix + resfile + ".jpeg"
+
         self.filemodtime = 0
         self.outwidth = 0
         self.outheight = 0
