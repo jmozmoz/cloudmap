@@ -104,8 +104,12 @@ class GeoSatelliteDataDundee(object):
             * tempdir:
                 directory to store downloaded images
         """
+
+        satellite_interval_in_h = 3
+
         self.dt = datetime.datetime(dt.year, dt.month, dt.day,
-                                    int((dt.hour // 3) * 3), 0, 0)
+                                    int((dt.hour // satellite_interval_in_h) *
+                                        satellite_interval_in_h), 0, 0)
         day = self.dt.strftime("%d").lstrip("0")
         month = self.dt.strftime("%m").lstrip("0")
         hour = self.dt.strftime("%H").lstrip("0")
