@@ -8,6 +8,7 @@ from setuptools.command.install import install as _install
 import os
 import versioneer
 import sys
+import datetime
 
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'cloudmap/_version.py'
@@ -29,9 +30,11 @@ def mkdir_p(path):
 
 def copy_config():
     try:
-        from shutil import copyfile
+        from shutil import copyfile, move
         srcfiles = [
             'CreateCloudMap.ini',
+        ]
+        srcfiles_overwrite = [
             'satellites.json'
         ]
 
@@ -45,6 +48,18 @@ def copy_config():
                 copyfile(srcpath, dstfile)
             else:
                 copyfile(srcpath, dstfile + '.new')
+
+        bak_date = datetime.datetime.now().strftime(
+            "%Y%m%d%H%M%S")
+
+        for src in srcfiles_overwrite:
+            dstfile = os.path.join(dstdir, src)
+            srcpath = os.path.join('cfg', src)
+            if not os.path.exists(dstfile):
+                copyfile(srcpath, dstfile)
+            else:
+                move(dstfile, dstfile + '.bak.' + bak_date)
+                copyfile(srcpath, dstfile)
 
     except IndexError:
         pass
@@ -60,11 +75,11 @@ cmdclass['install'] = Install
 
 if sys.version_info >= (3, 2):
     install_requires = ['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
-                        'pillowfight', 'setuptools>=0.7.2',
-                        'configparser==3.5.0b1']
+                        'pillow>=3.0.0', 'setuptools>=0.7.2',
+                        'configparser>=3.5.0b1']
 else:
     install_requires = ['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
-                        'pillowfight', 'setuptools>=0.7.2', 'configparser']
+                        'pillow>=3.0.0', 'setuptools>=0.7.2', 'configparser']
 
 setup(
     name='CreateCloudMap',

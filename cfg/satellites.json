@@ -1,17 +1,17 @@
 [
     {
         "type": "geoDundee",
-        "longitude": 57.0,
+        "longitude": 41.5,
         "limit":
         {
-           "left": 14,
-           "right": 611,
-           "top": 14,
-           "bottom": 611
+           "left": 17,
+           "right": 911,
+           "top": 15,
+           "bottom": 914
         },
         "rescale": "ID",
-        "base_url": "057.0E/MET/",
-        "suffix": "_MET7_2_"
+        "base_url": "041.5E/MSG/",
+        "suffix": "_MSG1_7_"
     },
     {
         "type": "geoDundee",
