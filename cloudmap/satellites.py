@@ -5,7 +5,7 @@ from __future__ import division
 
 from .mkdir import mkdir_p
 from .geo_dundee import GeoSatelliteDataDundee
-from .polar import PolarSatelliteData
+#  from .polar import PolarSatelliteData
 from .geo_jma import GeoSatelliteDataJMA
 
 import sys
@@ -201,6 +201,8 @@ class Satellites(object):
         dt = datetime.datetime.utcnow()
         max_tries = 200
 
+        print("Search backward for images from:", dt)
+
         for _ in range(max_tries):
             found_all = True
 
@@ -211,7 +213,7 @@ class Satellites(object):
 
             if found_all:
                 break
-            dt = dt - datetime.timedelta(hours=3)
+            dt = dt - datetime.timedelta(hours=1)
 
         if not found_all:
             sys.exit("Cannot download (all) satellite images!")
