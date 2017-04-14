@@ -7,9 +7,6 @@ CreateCloudMap
 .. image:: https://img.shields.io/pypi/pyversions/CreateCloudMap.svg
     :target: https://pypi.python.org/pypi/createcloudmap
 
-.. image:: https://img.shields.io/pypi/dm/CreateCloudMap.svg
-        :target: https://pypi.python.org/pypi/createcloudmap
-
 .. image:: https://img.shields.io/pypi/l/CreateCloudMap.svg
     :target: https://pypi.python.org/pypi/createcloudmap
 
