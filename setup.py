@@ -29,40 +29,36 @@ def mkdir_p(path):
 
 
 def copy_config():
-    try:
-        from shutil import copyfile, move
-        srcfiles = [
-            'CreateCloudMap.ini',
-        ]
-        srcfiles_overwrite = [
-            'satellites.json'
-        ]
+    from shutil import copyfile, move
+    srcfiles = [
+        'CreateCloudMap.ini',
+    ]
+    srcfiles_overwrite = [
+        'satellites.json'
+    ]
 
-        dstdir = os.path.expanduser('~/.CreateCloudMap')
-        mkdir_p(dstdir)
+    dstdir = os.path.expanduser('~/.CreateCloudMap')
+    mkdir_p(dstdir)
 
-        for src in srcfiles:
-            dstfile = os.path.join(dstdir, src)
-            srcpath = os.path.join('cfg', src)
-            if not os.path.exists(dstfile):
-                copyfile(srcpath, dstfile)
-            else:
-                copyfile(srcpath, dstfile + '.new')
+    for src in srcfiles:
+        dstfile = os.path.join(dstdir, src)
+        srcpath = os.path.join('cfg', src)
+        if not os.path.exists(dstfile):
+            copyfile(srcpath, dstfile)
+        else:
+            copyfile(srcpath, dstfile + '.new')
 
-        bak_date = datetime.datetime.now().strftime(
-            "%Y%m%d%H%M%S")
+    bak_date = datetime.datetime.now().strftime(
+        "%Y%m%d%H%M%S")
 
-        for src in srcfiles_overwrite:
-            dstfile = os.path.join(dstdir, src)
-            srcpath = os.path.join('cfg', src)
-            if not os.path.exists(dstfile):
-                copyfile(srcpath, dstfile)
-            else:
-                move(dstfile, dstfile + '.bak.' + bak_date)
-                copyfile(srcpath, dstfile)
-
-    except IndexError:
-        pass
+    for src in srcfiles_overwrite:
+        dstfile = os.path.join(dstdir, src)
+        srcpath = os.path.join('cfg', src)
+        if not os.path.exists(dstfile):
+            copyfile(srcpath, dstfile)
+        else:
+            move(dstfile, dstfile + '.bak.' + bak_date)
+            copyfile(srcpath, dstfile)
 
 
 class Install(_install):
