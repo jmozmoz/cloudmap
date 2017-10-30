@@ -70,12 +70,12 @@ cmdclass = versioneer.get_cmdclass()
 cmdclass['install'] = Install
 
 if sys.version_info >= (3, 2):
-    install_requires = ['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
+    install_requires = ['pyresample', 'numpy', 'scipy', 'requests',
+                        'pillow>=3.0.0', 'setuptools>=0.7.2']
+else:
+    install_requires = ['pyresample', 'numpy', 'scipy', 'requests',
                         'pillow>=3.0.0', 'setuptools>=0.7.2',
                         'configparser>=3.5.0b1']
-else:
-    install_requires = ['pyresample', 'numpy', 'scipy', 'requests', 'datetime',
-                        'pillow>=3.0.0', 'setuptools>=0.7.2', 'configparser']
 
 setup(
     name='CreateCloudMap',
