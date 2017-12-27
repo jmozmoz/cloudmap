@@ -20,7 +20,7 @@ class GeoSatelliteDataDundee(object):
     """
 
     def __init__(self, longitude, limit, rescale, base_url, suffix,
-                 resolution, debug=False):
+                 resolution, resolution_str, resolution_mult, debug=False):
         """
         Args:
 
@@ -39,13 +39,6 @@ class GeoSatelliteDataDundee(object):
             * resolution:
                 resolution of the image to be downloaded (low, medium, high)
         """
-
-        resolution_str = {'low': 'S4',
-                          'medium': 'S2',
-                          'high': 'S1'}
-        resolution_mult = {'low': 1,
-                           'medium': 2,
-                           'high': 4}
 
         self.debug = debug
 
@@ -238,7 +231,13 @@ class GeoSatelliteDataDundee(object):
         from .satellites import pc
 
         img = Image.open(self.filename).convert("L")
+        if self.debug:
+            print("image size uncut:", np.array(img).shape)
+
         self.data = self.cut_borders(np.array(img))
+
+        if self.debug:
+            print("image size cut:  ", self.data.shape)
 
         x_size = self.data.shape[1]
         y_size = self.data.shape[0]

@@ -172,6 +172,21 @@ class Satellites(object):
 
         for s in satellite_json:
             rescale = ID if s['rescale'] == "ID" else None
+
+            if 'resolution_str' in s:
+                resolution_str = s['resolution_str']
+            else:
+                resolution_str = {'low': 'S4',
+                                  'medium': 'S2',
+                                  'high': 'S1'}
+
+            if 'resolution_mult' in s:
+                resolution_mult = s['resolution_mult']
+            else:
+                resolution_mult = {'low': 1,
+                                   'medium': 2,
+                                   'high': 4}
+
             if s['type'] == 'geoDundee':
                 self.satellite_list.append(GeoSatelliteDataDundee(
                     longitude=s['longitude'],
@@ -179,6 +194,8 @@ class Satellites(object):
                     base_url=s['base_url'],
                     suffix=s['suffix'],
                     resolution=resolution,
+                    resolution_str=resolution_str,
+                    resolution_mult=resolution_mult,
                     debug=debug,
                     rescale=rescale
                 ))

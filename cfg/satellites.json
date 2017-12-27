@@ -32,13 +32,26 @@
         "longitude": -75.0,
         "limit":
         {
-           "left": 16,
-           "right": 688,
-           "top": 70,
-        "bottom": 744},
+           "left": 38,
+           "right": 5380,
+           "top": 30,
+           "bottom": 5392
+        },
+        "resolution_str":
+        {
+            "low": "S1",
+            "medium": "S1",
+            "hight": "S1"
+        },
+        "resolution_mult":
+        {
+            "low": 1,
+            "medium": 1,
+            "high": 1
+        },
         "rescale": "ID",
         "base_url": "075.0W/GOES/",
-        "suffix": "_GOES13_4_"
+        "suffix": "_GOES16_12_"
     },
     {
         "type": "geoDundee",
