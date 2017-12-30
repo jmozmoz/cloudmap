@@ -4,14 +4,15 @@ python:
   - "2.7"
   - "3.6"
 
-before_install:
-  - sudo apt-get install python-numpy python3-numpy
-  - sudo apt-get install python-scipy python3-scipy
-  - sudo apt-get install python-requests python3-requests
-  - sudo apt-get install python-pillow python3-pillow
-  - sudo apt-get install python-pyresample python3-pyresample
-  - sudo apt-get install python-configparser
+# before_install:
+#   - sudo apt-get install python-numpy python3-numpy
+#   - sudo apt-get install python-scipy python3-scipy
+#   - sudo apt-get install python-requests python3-requests
+#   - sudo apt-get install python-pillow python3-pillow
+#   - sudo apt-get install python-pyresample python3-pyresample
+#   - sudo apt-get install python-configparser
 
 script: 
+  - python setup.py build
   - python setup.py install
   - create_map -h
