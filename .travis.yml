@@ -20,6 +20,7 @@ before_install:
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
 
 script: 
+  - mkdir -p $HOME/.CreateCloudMap
   - sh ./tests/create_cfg.sh
   - python setup.py develop
   - python setup.py install
