@@ -66,6 +66,7 @@ class Install(_install):
         _install.run(self)
         copy_config()
 
+
 cmdclass = versioneer.get_cmdclass()
 cmdclass['install'] = Install
 
@@ -120,4 +121,5 @@ setup(
         "Topic :: Scientific/Engineering :: Visualization",
         "Topic :: Utilities",
     ],
+    zip_safe=False,
 )
