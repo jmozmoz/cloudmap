@@ -16,7 +16,7 @@
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1450392000272</id>
+			<id>1514666877597</id>
 			<name></name>
 			<type>22</type>
 			<matcher>
@@ -25,12 +25,30 @@
 			</matcher>
 		</filter>
 		<filter>
-			<id>1450392000287</id>
+			<id>1514666877644</id>
 			<name></name>
 			<type>10</type>
 			<matcher>
 				<id>org.eclipse.ui.ide.multiFilter</id>
 				<arguments>1.0-name-matches-false-false-build</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1514666877675</id>
+			<name></name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-__pycache__</arguments>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1514666877769</id>
+			<name></name>
+			<type>10</type>
+			<matcher>
+				<id>org.eclipse.ui.ide.multiFilter</id>
+				<arguments>1.0-name-matches-false-false-.ipynb_checkpoints</arguments>
 			</matcher>
 		</filter>
 	</filteredResources>
