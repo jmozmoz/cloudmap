@@ -23,7 +23,8 @@ before_install:
 script: 
   - mkdir -p $HOME/.CreateCloudMap
   - sh ./tests/create_cfg.sh
-  - python setup.py sdist
+  - python setup.py sdist --format=gztar
+  - ls dist/CreateCloudMap-*.tar.gz
   - export PKG=`ls dist/CreateCloudMap-*.tar.gz`
   - pip install 
   - pip install cython
