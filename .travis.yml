@@ -23,14 +23,14 @@ before_install:
 script: 
   - mkdir -p $HOME/.CreateCloudMap
   - sh ./tests/create_cfg.sh
-  - python setup.py develop
-  - python setup.py install
+  - python setup.py sdist
+  - pip install dist/CreateCloudMap-*.tar.gz
   - pip install cython
   - pip install pyproj
-  - pip install -e .[debug_cartopy]
+  - pip install dist/CreateCloudMap-*.tar.gz[debug_cartopy]
   - wget  https://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
   - pip install basemap-1.0.7.tar.gz
-  - pip install -e .[debug_pyresample]
+  - pip install dist/CreateCloudMap-*.tar.gz[debug_pyresample]
   - create_map -h
   - create_map --version
   - create_map
