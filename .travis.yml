@@ -13,7 +13,7 @@ before_install:
   - wget http://us.archive.ubuntu.com/ubuntu/pool/universe/p/proj/libproj-dev_4.9.2-2_amd64.deb
   - sudo dpkg -i libproj-dev_4.9.2-2_amd64.deb
   - sudo apt-get install libgeos-dev
-  - sudo ln -s /usr/lib/libgeos-3.*.so /usr/lib/libgeos.so
+#  - sudo ln -s /usr/lib/libgeos-3.*.so /usr/lib/libgeos.so
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
 
 script: 
