@@ -1,0 +1,41 @@
+language: python
+
+python:
+  - "2.7"
+#   - "3.4"
+#   - "3.5"
+  - "3.6"
+
+env:
+  - DUNDEE_TEMPDIR=images_resample DUNDEE_RESOLUTION=low DUNDEE_NPROCS=2 DUNDEE_PROJECTION=pyresample
+
+before_install:
+  - sudo apt-get install libproj-dev proj-bin proj-data
+  - wget http://us.archive.ubuntu.com/ubuntu/pool/universe/p/proj/libproj9_4.9.2-2_amd64.deb 
+  - sudo dpkg -i libproj9_4.9.2-2_amd64.deb 
+  - wget http://us.archive.ubuntu.com/ubuntu/pool/universe/p/proj/libproj-dev_4.9.2-2_amd64.deb
+  - sudo dpkg -i libproj-dev_4.9.2-2_amd64.deb
+  - sudo apt-get install libgeos-dev
+#  - sudo ln -s /usr/lib/libgeos-3.*.so /usr/lib/libgeos.so
+  - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
+  - sudo apt-get install imagemagick # need this for "file" output
+
+script: 
+  - mkdir -p $HOME/.CreateCloudMap
+  - sh ./tests/create_cfg.sh
+  - python setup.py develop
+  - python setup.py install
+  - pip install cython
+  - pip install pyproj
+  - pip install -e .[debug_cartopy]
+  - wget  https://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
+  - pip install basemap-1.0.7.tar.gz
+  - pip install -e .[debug_pyresample]
+  - create_map -h
+  - create_map --version
+  - create_map
+  - identify xplanet/images/clouds_2048.jpg
+  - rm xplanet/images/clouds_2048.jpg
+  - create_map -d
+  - identify xplanet/images/clouds_2048.jpg
+  - rm xplanet/images/clouds_2048.jpg
