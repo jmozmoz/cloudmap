@@ -2,10 +2,17 @@ language: python
 
 python:
   - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
   - "3.6"
 
 before_install:
   - sudo apt-get install libproj-dev proj-bin proj-data
+  - wget http://us.archive.ubuntu.com/ubuntu/pool/universe/p/proj/libproj9_4.9.2-2_amd64.deb 
+  - sudo dpkg -i libproj9_4.9.2-2_amd64.deb 
+  - wget http://us.archive.ubuntu.com/ubuntu/pool/universe/p/proj/libproj-dev_4.9.2-2_amd64.deb
+  - sudo dpkg -i libproj-dev_4.9.2-2_amd64.deb
   - sudo apt-get install libgeos-dev
 #   - sudo apt-get install python-numpy python3-numpy
 #   - sudo apt-get install python-scipy python3-scipy
