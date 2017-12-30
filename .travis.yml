@@ -6,6 +6,9 @@ python:
 #   - "3.5"
   - "3.6"
 
+env:
+  - DUNDEE_TEMPDIR=images_resample DUNDEE_RESOLUTION=low DUNDEE_NPROCS=2 DUNDEE_PROJECTION=pyresample
+
 before_install:
   - sudo apt-get install libproj-dev proj-bin proj-data
   - wget http://us.archive.ubuntu.com/ubuntu/pool/universe/p/proj/libproj9_4.9.2-2_amd64.deb 
@@ -17,8 +20,8 @@ before_install:
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
 
 script: 
+  - sh ./tests/create_cfg.sh
   - python setup.py develop
-  - python setup.py build
   - python setup.py install
   - pip install cython
   - pip install pyproj
@@ -28,3 +31,4 @@ script:
   - pip install -e .[debug_pyresample]
   - create_map -h
   - create_map --version
+  - create_map
