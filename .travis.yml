@@ -18,6 +18,7 @@ before_install:
   - sudo apt-get install libgeos-dev
 #  - sudo ln -s /usr/lib/libgeos-3.*.so /usr/lib/libgeos.so
   - sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev gfortran
+  - sudo apt-get install imagemagick # need this for "file" output
 
 script: 
   - mkdir -p $HOME/.CreateCloudMap
