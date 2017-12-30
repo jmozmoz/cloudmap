@@ -34,8 +34,8 @@ script:
   - create_map -h
   - create_map --version
   - create_map
-  - file xplanet/images/clouds_2048.jpg
+  - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg
   - create_map -d
-  - file xplanet/images/clouds_2048.jpg
+  - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg
