@@ -26,18 +26,18 @@ script:
   - python setup.py sdist --format=gztar
   - ls dist/CreateCloudMap-*.tar.gz
   - export PKG=`ls dist/CreateCloudMap-*.tar.gz`
-  - pip install 
+  - pip install $PKG
+  - create_map -h
+  - create_map --version
+  - create_map
+  - identify xplanet/images/clouds_2048.jpg
+  - rm xplanet/images/clouds_2048.jpg
   - pip install cython
   - pip install pyproj
   - pip install ${PKG}[debug_cartopy]
   - wget  https://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
   - pip install basemap-1.0.7.tar.gz
   - pip install ${PKG}[debug_pyresample]
-  - create_map -h
-  - create_map --version
-  - create_map
-  - identify xplanet/images/clouds_2048.jpg
-  - rm xplanet/images/clouds_2048.jpg
   - create_map -d
   - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg
