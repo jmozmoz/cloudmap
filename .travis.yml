@@ -29,7 +29,7 @@ script:
   - pip install $PKG
   - create_map -h
   - create_map --version
-  - create_map
+  - create_map -m 23
   - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg
   - pip install cython
@@ -38,6 +38,6 @@ script:
   - wget -nv  https://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
   - pip install basemap-1.0.7.tar.gz
   - pip install ${PKG}[debug_pyresample]
-  - create_map -d
+  - create_map -d -m 23
   - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg

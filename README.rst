@@ -78,13 +78,15 @@ install it). If ``cartopy`` is used, this library must be installed manually.
 To see all command line options of the script use ``--help``::
 
   $ create_map --help
-  usage: create_map [-h] [-d] [-c FILE] [-f]
+  usage: create_map [-h] [-d] [-c FILE] [-m MAX_AGE] [-f]
 
   optional arguments:
     -h, --help            show this help message and exit
     -d, --debug           store intermediate results
     -c FILE, --conf_file FILE
                           Specify config file
+    -m MAX_AGE, --max_age MAX_AGE
+                          Maximal age of satellite images to download
     -f, --force           Force to recreate cloud map
 
 Dependencies

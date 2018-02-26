@@ -210,17 +210,16 @@ class Satellites(object):
                     rescale=rescale
                 ))
 
-    def find_latest(self):
+    def find_latest(self, max_age):
         """
         Find the latest time for which all satellite images can
         be downloaded
         """
         dt = datetime.datetime.utcnow()
-        max_tries = 200
 
         print("Search backward for images from:", dt)
 
-        for _ in range(max_tries):
+        for _ in range(max_age):
             found_all = True
 
             for satellite in self.satellite_list:

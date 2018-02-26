@@ -29,6 +29,9 @@ def main():
                             "~/.CreateCloudMap/CreateCloudMap.ini"))
     parser.add_argument("-f", "--force", help="Force to recreate cloud map",
                         action="store_true")
+    parser.add_argument("-m", "--max_age", help="Maximal age of satellite " +
+                        "images to download", type=int,
+                        default=200, required=False)
     parser.add_argument('-V', '--version', action='version',
                         version=__version__)
     args = parser.parse_args()
@@ -75,7 +78,7 @@ def main():
 
     satellite_list = Satellites(resolution, username, password,
                                 tempdir, nprocs, args.debug)
-    dt = satellite_list.find_latest()
+    dt = satellite_list.find_latest(args.max_age)
 
     print("Download image date/time: ",
           dt.strftime("%Y-%m-%d %H:00 UTC"))
