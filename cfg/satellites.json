@@ -51,7 +51,7 @@
         },
         "rescale": "ID",
         "base_url": "075.0W/GOES/",
-        "suffix": "_GOES16_12_"
+        "suffix": "_GOES16_13_"
     },
     {
         "type": "geoDundee",
