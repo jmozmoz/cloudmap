@@ -5,7 +5,7 @@ python:
 #   - "3.4"
 #   - "3.5"
   - "3.6"
-  - "3.7"
+#  - "3.7"
 
 env:
   - DUNDEE_TEMPDIR=images_resample DUNDEE_RESOLUTION=low DUNDEE_NPROCS=2 DUNDEE_PROJECTION=pyresample
