@@ -36,11 +36,9 @@ script:
   - pip install cython
   - pip install pyproj
   - pip install ${PKG}[debug_cartopy]
-  - pip uninstall -y matplotlib
-  - pip install matplotlib==2.2.3
-  - wget -nv  https://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
-  - pip install basemap-1.0.7.tar.gz
-  - pip install ${PKG}[debug_pyresample]
+  - wget -nv  https://github.com/matplotlib/basemap/archive/v1.1.0.tar.gz
+  - pip install v1.1.0.tar.gz
+  - pip install ${PKG}[   ]
   - create_map -d -m 23
   - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg
