@@ -35,6 +35,8 @@ script:
   - pip install cython
   - pip install pyproj
   - pip install ${PKG}[debug_cartopy]
+  - pip uninstall -y matplotlib
+  - pip install matplotlib==2.2.3
   - wget -nv  https://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz
   - pip install basemap-1.0.7.tar.gz
   - pip install ${PKG}[debug_pyresample]
