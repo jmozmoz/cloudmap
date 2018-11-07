@@ -64,7 +64,7 @@
            "bottom": 744
         },
         "rescale": "ID",
-        "base_url": "135.0W/GOES/",
+        "base_url": "128.0W/GOES/",
         "suffix": "_GOES15_4_"
     },
     {
