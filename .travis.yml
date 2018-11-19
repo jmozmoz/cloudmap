@@ -8,7 +8,7 @@ python:
 #  - "3.7"
 
 env:
-  - DUNDEE_TEMPDIR=images_resample DUNDEE_RESOLUTION=low DUNDEE_NPROCS=2 DUNDEE_PROJECTION=pyresample
+  - DUNDEE_TEMPDIR=images_resample DUNDEE_RESOLUTION=high DUNDEE_NPROCS=2 DUNDEE_PROJECTION=pyresample
 
 before_install:
   - sudo apt-get install libproj-dev proj-bin proj-data
