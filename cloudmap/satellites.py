@@ -33,6 +33,12 @@ def ID(b):
     return b
 
 
+def invert(b):
+    """Identity function"""
+
+    return 255 - b
+
+
 def saveDebug(weight_sum, filename):
     """
     Save image for debugging onto map with grid and coastlines
@@ -171,7 +177,12 @@ class Satellites(object):
         self.satellite_list = []
 
         for s in satellite_json:
-            rescale = ID if s['rescale'] == "ID" else None
+            if s['rescale'] == "ID":
+                rescale = ID
+            elif s['rescale'] == "invert":
+                rescale = invert
+            else:
+                rescale = None
 
             if 'resolution_str' in s:
                 resolution_str = s['resolution_str']

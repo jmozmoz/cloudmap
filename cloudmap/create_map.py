@@ -19,7 +19,7 @@ def main():
     Satellites server
     """
 
-    tic = time.clock()
+    tic = time.process_time()
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="store intermediate results",
                         action="store_true")
@@ -35,7 +35,7 @@ def main():
     parser.add_argument('-V', '--version', action='version',
                         version=__version__)
     args = parser.parse_args()
-    config = configparser.SafeConfigParser(
+    config = configparser.ConfigParser(
         {'width': '2048',
          'height': '1024',
          'destinationfile': 'clouds_2048.jpg',
@@ -98,7 +98,7 @@ def main():
     satellite_list.overlay(args.debug)
     satellite_list.save_image(outdir, outfile)
 
-    toc = time.clock()
+    toc = time.process_time()
 
     print("finished in {:.1f} s".format((toc - tic)))
 

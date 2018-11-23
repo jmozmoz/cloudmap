@@ -1,6 +1,20 @@
 [
     {
         "type": "geoDundee",
+        "longitude": 0.0,
+        "limit":
+        {
+           "left": 17,
+           "right": 911,
+           "top": 17,
+           "bottom": 911
+        },
+        "rescale": "ID",
+        "base_url": "000.0E/MSG/",
+        "suffix": "_MSG4_9_"
+    },
+    {
+        "type": "geoDundee",
         "longitude": 41.5,
         "limit":
         {
@@ -15,17 +29,17 @@
     },
     {
         "type": "geoDundee",
-        "longitude": 0.0,
+        "longitude": 76.0,
         "limit":
         {
-           "left": 17,
-           "right": 911,
-           "top": 17,
-           "bottom": 911
+           "left": 13,
+           "right": 684,
+           "top": 12,
+           "bottom": 684
         },
         "rescale": "ID",
-        "base_url": "000.0E/MSG/",
-        "suffix": "_MSG4_9_"
+        "base_url": "077.0E/GOMS/",
+        "suffix": "_GOMS_8_"
     },
     {
         "type": "geoDundee",
