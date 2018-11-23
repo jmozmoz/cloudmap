@@ -8,7 +8,7 @@ import argparse
 import configparser
 import os
 import sys
-import time
+import timeit
 
 from .__init__ import Satellites, __version__
 
@@ -19,7 +19,7 @@ def main():
     Satellites server
     """
 
-    tic = time.process_time()
+    tic = timeit.default_timer()
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", help="store intermediate results",
                         action="store_true")
@@ -98,9 +98,10 @@ def main():
     satellite_list.overlay(args.debug)
     satellite_list.save_image(outdir, outfile)
 
-    toc = time.process_time()
+    toc = timeit.default_timer()
 
     print("finished in {:.1f} s".format((toc - tic)))
+
 
 if __name__ == '__main__':
     main()
