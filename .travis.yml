@@ -37,7 +37,7 @@ script:
   - pip install pyproj
   - pip install ${PKG}[debug_cartopy]
   - pip uninstall matplotlib -y
-  - pip install "matplotlib<=3.0.0" 
+  - pip install matplotlib 
   - pip install git+https://github.com/matplotlib/basemap
   - pip install ${PKG}[debug_pyresample]
   - create_map -d -m 23
