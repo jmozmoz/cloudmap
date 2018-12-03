@@ -10,6 +10,7 @@ import os
 import sys
 import timeit
 import logging
+import multiprocessing_logging
 
 from .__init__ import Satellites, __version__
 
@@ -64,6 +65,8 @@ def main():
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
+
+    multiprocessing_logging.install_mp_handler()
 
     try:
         nprocs = int(config.get("processing", 'nprocs'))
