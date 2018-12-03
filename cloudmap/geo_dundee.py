@@ -275,3 +275,15 @@ class GeoSatelliteDataDundee(object):
         dataResampledImage[south_pole_indices, :] = \
             dataResampledImage[south_pole_copy_indices, :]
         return dataResampledImage
+
+    # https://stackoverflow.com/a/26063379
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        if 'logger' in d:
+            d['logger'] = d['logger'].name
+        return d
+
+    def __setstate__(self, d):
+        if 'logger' in d:
+            d['logger'] = logging.getLogger(d['logger'])
+        self.__dict__.update(d)
