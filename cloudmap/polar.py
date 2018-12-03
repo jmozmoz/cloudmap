@@ -93,27 +93,24 @@ class PolarSatelliteData(object):
         downloaded from the Dundee server
         """
         if os.path.isfile(self.filename):
-            if self.debug:
-                print("found image:", self.filename)
+            self.logger.debug("found image: %s" % self.filename)
             return True
         r = requests.head(self.url)
         if r.status_code == requests.codes.ok:  # @UndefinedVariable
-            if self.debug:
-                print("can download image:", self.url)
+            self.logger.debug("can download image: %s" % self.url)
             return True
         else:
-            if self.debug:
-                print("cannot download image:", self.url)
+            self.logger.debug("cannot download image: %s" % self.url)
             return False
 
     def download_image(self):
         """Download the image if it has not been downloaded before"""
         if os.path.isfile(self.filename):
-            if self.debug:
-                print("image has alread been downloaded:", self.filename)
+            self.logger.debug("image has already been downloaded: %s" %
+                              self.filename)
             self.filemodtime = os.path.getmtime(self.filename)
             return
-        print("download image:", self.url)
+        self.logger.info("download image: %s" % self.url)
         r = requests.get(self.url)
         i = Image.open(BytesIO(r.content))
         i.save(self.filename)
@@ -235,7 +232,7 @@ class PolarSatelliteData(object):
 #         weightResampledImage = weightResampled.image_data
 #         dataResampledImage = self.polar_clouds(dataResampledImage)
 
-        print("image max:", np.max(dataResampledImage))
+        self.logger.info("image max: %r" % np.max(dataResampledImage))
 
         result = np.array([dataResampledImage, weightResampledImage])
         return result

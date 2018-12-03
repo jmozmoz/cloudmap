@@ -9,6 +9,7 @@ import configparser
 import os
 import sys
 import timeit
+import logging
 
 from .__init__ import Satellites, __version__
 
@@ -18,6 +19,9 @@ def main():
     Create world satellite image using the latest images from the
     Satellites server
     """
+
+    logging.basicConfig(format='%(name)s:%(levelname)5s: %(message)s')
+    logger = logging.getLogger('create_map_logger')
 
     tic = timeit.default_timer()
     parser = argparse.ArgumentParser()
@@ -56,6 +60,11 @@ def main():
     outdir = config.get("xplanet", 'destinationdir')
     outfile = config.get("xplanet", 'destinationfile')
 
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
     try:
         nprocs = int(config.get("processing", 'nprocs'))
     except (configparser.NoSectionError, configparser.NoOptionError):
@@ -68,9 +77,9 @@ def main():
         Satellites.projection_method = 'pyresample'
 
     if Satellites.projection_method not in ['cartopy', 'pyresample']:
-        print("Incorrect projection library setting:",
-              Satellites.projection_method)
-        print("Use either pyresample or cartopy")
+        logger.error("Incorrect projection library setting: %s" %
+                     Satellites.projection_method)
+        logger.error("Use either pyresample or cartopy")
         sys.exit(1)
 
     Satellites.outwidth = int(config.get("xplanet", 'width'))
@@ -80,8 +89,8 @@ def main():
                                 tempdir, nprocs, args.debug)
     dt = satellite_list.find_latest(args.max_age)
 
-    print("Download image date/time: ",
-          dt.strftime("%Y-%m-%d %H:00 UTC"))
+    logger.info("Download image date/time: %s" %
+                dt.strftime("%Y-%m-%d %H:00 UTC"))
 
     latest_download = satellite_list.download(purge)
 
@@ -100,7 +109,7 @@ def main():
 
     toc = timeit.default_timer()
 
-    print("finished in {:.1f} s".format((toc - tic)))
+    logger.info("finished in {:.1f} s".format((toc - tic)))
 
 
 if __name__ == '__main__':

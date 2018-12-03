@@ -11,6 +11,7 @@ import datetime
 import glob
 from PIL import Image
 import sys
+import logging
 
 
 class GeoSatelliteDataDundee(object):
@@ -41,6 +42,7 @@ class GeoSatelliteDataDundee(object):
         """
 
         self.debug = debug
+        self.logger = logging.getLogger('create_map_logger')
 
         try:
             resfile = resolution_str[resolution]
@@ -132,27 +134,24 @@ class GeoSatelliteDataDundee(object):
         downloaded from the Dundee server
         """
         if os.path.isfile(self.filename):
-            if self.debug:
-                print("found image:", self.filename)
+            self.logger.debug("found image: %s" % self.filename)
             return True
         r = requests.head(self.url, auth=(self.username, self.password))
         if r.status_code == requests.codes.ok:  # @UndefinedVariable
-            if self.debug:
-                print("can download image:", self.url)
+            self.logger.debug("can download image: %s" % self.url)
             return True
         else:
-            if self.debug:
-                print("cannot download image:", self.url)
+            self.logger.debug("cannot download image: %s" % self.url)
             return False
 
     def download_image(self):
         """Download the image if it has not been downloaded before"""
         if os.path.isfile(self.filename):
-            if self.debug:
-                print("image has alread been downloaded:", self.filename)
+            self.logger.debug("image has already been downloaded: %s" %
+                              self.filename)
             self.filemodtime = os.path.getmtime(self.filename)
             return
-        print("download image:", self.url)
+        self.logger.info("download image: %s" % self.url)
         r = requests.get(self.url, auth=(self.username, self.password))
         i = Image.open(BytesIO(r.content))
         i.save(self.filename)
@@ -231,13 +230,11 @@ class GeoSatelliteDataDundee(object):
         from .satellites import pc
 
         img = Image.open(self.filename).convert("L")
-        if self.debug:
-            print("image size uncut:", np.array(img).shape)
+        self.logger.debug("image size uncut: %s" % (np.array(img).shape,))
 
         self.data = self.cut_borders(np.array(img))
 
-        if self.debug:
-            print("image size cut:  ", self.data.shape)
+        self.logger.debug("image size cut:  %s" % (self.data.shape,))
 
         x_size = self.data.shape[1]
         y_size = self.data.shape[0]
@@ -258,8 +255,7 @@ class GeoSatelliteDataDundee(object):
         dataResampledImage = self.polar_clouds(dataResampledImage)
         weight = self.get_weight()
 
-        if self.debug:
-            print("image max:", np.max(dataResampledImage))
+        self.logger.debug("image max: %d" % np.max(dataResampledImage))
 
         result = np.array([dataResampledImage, weight])
         return result

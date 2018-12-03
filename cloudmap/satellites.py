@@ -14,6 +14,8 @@ import numpy as np
 import os
 from PIL import Image
 import json
+import logging
+
 
 def curve(b):
     """Rescale the brightness values used for MTSAT2 satellite"""
@@ -167,6 +169,7 @@ class Satellites(object):
                 number of processors to used for image processing
         """
 
+        self.logger = logging.getLogger('create_map_logger')
         self.username = username
         self.password = password
         self.tempdir = tempdir
@@ -228,7 +231,7 @@ class Satellites(object):
         """
         dt = datetime.datetime.utcnow()
 
-        print("Search backward for images from:", dt)
+        self.logger.info("Search backward for images from: %s" % dt)
 
         for _ in range(max_age):
             found_all = True
@@ -262,7 +265,7 @@ class Satellites(object):
         for satellite in self.satellite_list:
             if purge:
                 satellite.purge()
-            print("Satellite file: " + satellite.filename)
+            self.logger.info("Satellite file: %s" % satellite.filename)
             satellite.download_image()
             latest_download = max(latest_download, satellite.filemodtime)
 
