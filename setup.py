@@ -73,12 +73,12 @@ cmdclass['install'] = Install
 if sys.version_info >= (3, 2):
     install_requires = ['pyresample', 'numpy', 'scipy', 'requests',
                         'pillow>=3.0.0', 'setuptools>=0.7.2',
-                        'multiprocessing_logging']
+                        ]
 else:
     install_requires = ['pyresample', 'numpy', 'scipy', 'requests',
                         'pillow>=3.0.0', 'setuptools>=0.7.2',
                         'configparser>=3.5.0b1',
-                        'multiprocessing_logging']
+                        ]
 
 setup(
     name='CreateCloudMap',
