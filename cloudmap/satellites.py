@@ -288,6 +288,7 @@ class Satellites(object):
 
         if self.nprocs == 1:
             i = 1
+            images = []
             for satellite in self.satellite_list:
                 # put class variables into object variables to get it to
                 # work with multiprocessing
@@ -296,6 +297,7 @@ class Satellites(object):
                 satellite.projection_method = \
                     Satellites.projection_method
                 img = satellite.project()
+                images.append(img)
                 if debug:
                     self.imageDebug(i, img)
                 i += 1
@@ -323,6 +325,30 @@ class Satellites(object):
         self.out_image = self.out_image / weight_sum
 
         if debug:
+            import itertools
+
+            qual_sum = 0
+            i = 0
+            for im1, im2 in itertools.combinations(images, 2):
+                qw = (im1[1] - im2[1])**0 * im1[1] * im2[1]
+                qal = (im1[0] - im2[0])**2 * qw
+                qual_sum += np.sum(qal)
+
+                qal[0, 0] = 1
+                saveDebug(qal,
+                          os.path.join(self.tempdir,
+                                       "qal" + str(i) + ".jpeg"))
+                saveDebug(qw,
+                          os.path.join(self.tempdir,
+                                       "qalwei" + str(i) + ".jpeg"))
+                i += 1
+
+            self.logger.info(
+                "Pixel deviation sum: %e" %
+                (qual_sum /
+                 (i * Satellites.outwidth * Satellites.outheight))
+            )
+
             saveDebug(weight_sum,
                       os.path.join(self.tempdir, "weightsum.jpeg"))
             saveDebug(self.out_image,
