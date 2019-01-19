@@ -72,10 +72,10 @@
         "longitude": -128.0,
         "limit":
         {
-           "left": 67,
-           "right": 2750,
-           "top": 70,
-           "bottom": 2750
+           "left": 49,
+           "right": 2665,
+           "top": 53,
+           "bottom": 2650
         },
         "resolution_str":
         {
