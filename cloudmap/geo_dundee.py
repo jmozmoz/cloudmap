@@ -203,17 +203,18 @@ class GeoSatelliteDataDundee(object):
     def get_weight(self):
         """Get weighting function for satellite image for overlaying"""
         weight_width = 55
+        small = 1e-7
         weight = np.array([max((weight_width -
                                 min([abs(self.longitude - x),
                                     abs(self.longitude - x + 360),
                                     abs(self.longitude - x - 360)])) / 180,
-                               1e-7)
+                               small)
                            for x in np.linspace(-180,
                                                 180,
                                                 self.outwidth)])
 
         weight = np.array([weight *
-                           max(1e-7,
+                           max(small,
                                1 - 9/7 *
                                abs(i - self.outheight/2)/self.outheight*2)**0.5
                            for i in range(self.outheight)])
