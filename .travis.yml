@@ -34,7 +34,7 @@ script:
   - identify xplanet/images/clouds_2048.jpg
   - rm xplanet/images/clouds_2048.jpg
   - pip install cython
-  - pip install pyproj==2.0.2
+  - pip install pyproj==1.9.6
   - pip install ${PKG}[debug_cartopy]
   - pip uninstall matplotlib -y
   - pip install matplotlib 
