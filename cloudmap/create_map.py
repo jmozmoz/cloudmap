@@ -7,11 +7,10 @@ from __future__ import division
 import argparse
 import configparser
 import os
-import sys
 import timeit
 import logging
 
-from .__init__ import Satellites, __version__
+from .__init__ import CloudMap, __version__
 
 
 def main():
@@ -25,7 +24,7 @@ def main():
 
     tic = timeit.default_timer()
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--debug", help="store intermediate results",
+    parser.add_argument("-d", "--debug", help="debug outputs",
                         action="store_true")
     parser.add_argument("-c", "--conf_file", help="Specify config file",
                         metavar="FILE",
@@ -33,9 +32,6 @@ def main():
                             "~/.CreateCloudMap/CreateCloudMap.ini"))
     parser.add_argument("-f", "--force", help="Force to recreate cloud map",
                         action="store_true")
-    parser.add_argument("-m", "--max_age", help="Maximal age of satellite " +
-                        "images to download", type=int,
-                        default=200, required=False)
     parser.add_argument('-V', '--version', action='version',
                         version=__version__)
     args = parser.parse_args()
@@ -43,19 +39,9 @@ def main():
         {'width': '2048',
          'height': '1024',
          'destinationfile': 'clouds_2048.jpg',
-         'resolution': 'medium',
-         'purge': 'false',
-         'nprocs': '1',
-         'projection': 'pyresample'
          }
         )
     config.read([args.conf_file])
-
-    username = config.get("Download", 'username')
-    password = config.get("Download", 'password')
-    tempdir = config.get("Download", 'tempdir')
-    resolution = config.get("Download", 'resolution')
-    purge = config.get("Download", 'purge').lower() == 'true'
 
     outdir = config.get("xplanet", 'destinationdir')
     outfile = config.get("xplanet", 'destinationfile')
@@ -65,47 +51,12 @@ def main():
     else:
         logger.setLevel(logging.INFO)
 
-    try:
-        nprocs = int(config.get("processing", 'nprocs'))
-    except (configparser.NoSectionError, configparser.NoOptionError):
-        nprocs = 1
+    outwidth = int(config.get("xplanet", 'width'))
+    outheight = int(config.get("xplanet", 'height'))
 
-    try:
-        Satellites.projection_method =\
-            config.get("processing", 'projection')
-    except (configparser.NoSectionError, configparser.NoOptionError):
-        Satellites.projection_method = 'pyresample'
+    satellite_list = CloudMap(outwidth, outheight)
 
-    if Satellites.projection_method not in ['cartopy', 'pyresample']:
-        logger.error("Incorrect projection library setting: %s" %
-                     Satellites.projection_method)
-        logger.error("Use either pyresample or cartopy")
-        sys.exit(1)
-
-    Satellites.outwidth = int(config.get("xplanet", 'width'))
-    Satellites.outheight = int(config.get("xplanet", 'height'))
-
-    satellite_list = Satellites(resolution, username, password,
-                                tempdir, nprocs, args.debug)
-    dt = satellite_list.find_latest(args.max_age)
-
-    logger.info("Download image date/time: %s" %
-                dt.strftime("%Y-%m-%d %H:00 UTC"))
-
-    latest_download = satellite_list.download(purge)
-
-    # Stop here if downloaded satellite images are older than
-    # current cloud image
-    if (
-        not args.force and
-        os.path.isfile(os.path.join(outdir, outfile)) and
-        (os.path.getmtime(os.path.join(outdir, outfile))
-         > latest_download)
-    ):
-        sys.exit(0)
-
-    satellite_list.overlay(args.debug)
-    satellite_list.save_image(outdir, outfile)
+    satellite_list.download(outdir, outfile, args.force)
 
     toc = timeit.default_timer()
 
