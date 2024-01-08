@@ -1,5 +1,1 @@
-include README.rst LICENSE
 include cfg/CreateCloudMap.ini
-include cfg/satellites.json
-include versioneer.py
-include cloudmap/_version.py

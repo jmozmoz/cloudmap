@@ -52,8 +52,8 @@ def get_config() -> VersioneerConfig:
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = ""
-    cfg.versionfile_source = "_version.py"
+    cfg.parentdir_prefix = "CreateCloudMap-"
+    cfg.versionfile_source = "cloudmap/_version.py"
     cfg.verbose = False
     return cfg
 

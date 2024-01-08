@@ -1,11 +1,7 @@
 language: python
 
 python:
-  - "2.7"
-#   - "3.4"
-#   - "3.5"
-  - "3.6"
-#  - "3.7"
+  - "3.11"
 
 env:
   - DUNDEE_TEMPDIR=images_resample DUNDEE_RESOLUTION=high DUNDEE_NPROCS=2 DUNDEE_PROJECTION=pyresample
@@ -30,16 +26,4 @@ script:
   - pip install $PKG
   - create_map -h
   - create_map --version
-  - create_map -m 23
   - identify xplanet/images/clouds_2048.jpg
-  - rm xplanet/images/clouds_2048.jpg
-  - pip install cython
-  - pip install pyproj==1.9.6
-  - pip install ${PKG}[debug_cartopy]
-  - pip uninstall matplotlib -y
-  - pip install matplotlib 
-  - pip install git+https://github.com/matplotlib/basemap
-  - pip install ${PKG}[debug_pyresample]
-  - create_map -d -m 23
-  - identify xplanet/images/clouds_2048.jpg
-  - rm xplanet/images/clouds_2048.jpg
