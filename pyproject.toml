@@ -1,5 +1,9 @@
 [build-system]
-requires = ["setuptools>=61.0", "versioneer[toml]"]
+requires = [
+  "setuptools>=61.0",
+  "versioneer[toml]",
+  'tomli; python_version < "3.11"',
+ ]
 build-backend = "setuptools.build_meta"
 
 [project]
