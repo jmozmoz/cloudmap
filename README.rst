@@ -10,6 +10,8 @@ CreateCloudMap
 .. image:: https://img.shields.io/pypi/l/CreateCloudMap.svg
     :target: https://pypi.python.org/pypi/createcloudmap
 
+.. image:: https://github.com/jmozmoz/cloudmap/actions/workflows/python-package.yml/badge.svg
+
 Python script to create a cloud map for xplanet using the cloud map provided
 by https://clouds.matteason.co.uk/.
 This script can also be installed by pip from `pypi <https://pypi.python.org/pypi/CreateCloudMap>`_.
