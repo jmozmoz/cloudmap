@@ -1,7 +1,8 @@
 from pathlib import Path
 import requests
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 from dateutil import parser
+import pytz
 import json
 import os
 import logging
@@ -64,7 +65,17 @@ class CloudMap(object):
         self.logger.debug(json.dumps(dict(response.headers), indent=4))
 
         out_path = outdir / Path(outfile)
-        new_time = parser.parse(response.headers['last-modified'])
+
+        self.logger.debug(f'response headers: {response.headers}')
+        if 'last-modified' in response.headers:
+            new_time = parser.parse(response.headers['last-modified'])
+        elif 'Age' in response.headers:
+            new_time = (
+                datetime.now() -
+                timedelta(seconds=int(response.headers['Age']))
+            ).replace(tzinfo=pytz.UTC)
+        else:
+            new_time = datetime.now().replace(tzinfo=pytz.UTC)
 
         if force:
             self.logger.info(f'{out_path} forcefully downloaded')
@@ -75,8 +86,10 @@ class CloudMap(object):
             self._download_image(self._url, out_path, new_time)
         else:
             old_time = datetime.fromtimestamp(
-                out_path.stat().st_mtime, tz=timezone.utc
+                out_path.stat().st_mtime, tz=pytz.UTC
             )
+            self.logger.debug(f'old time: {old_time}')
+            self.logger.debug(f'new time: {new_time}')
             if new_time > old_time:
                 out_path.unlink()
                 self.logger.debug(f'{out_path} too old')
