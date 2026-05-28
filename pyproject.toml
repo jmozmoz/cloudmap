@@ -18,7 +18,8 @@ license = "GPL-3.0-or-later"
 requires-python = ">=3.8"
 dependencies = [
   'requests',
-  'python-dateutil'
+  'python-dateutil',
+  'pytz'
 ]
 classifiers = [
         "Programming Language :: Python",
