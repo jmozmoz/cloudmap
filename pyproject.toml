@@ -15,7 +15,7 @@ authors = [
 description = "Downloads a cloud map for xplanet from https://clouds.matteason.co.uk/"
 readme = "README.rst"
 license = "GPL-3.0-or-later"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   'requests',
   'python-dateutil',
