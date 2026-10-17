@@ -71,11 +71,11 @@ class CloudMap(object):
             new_time = parser.parse(response.headers['last-modified'])
         elif 'Age' in response.headers:
             new_time = (
-                datetime.now(pytz.UTC) -
+                datetime.now() -
                 timedelta(seconds=int(response.headers['Age']))
-            )
+            ).replace(tzinfo=pytz.UTC)
         else:
-            new_time = datetime.now(pytz.UTC)
+            new_time = datetime.now().replace(tzinfo=pytz.UTC)
 
         if force:
             self.logger.info(f'{out_path} forcefully downloaded')
